@@ -1,0 +1,70 @@
+@import "tailwindcss";
+
+:root {
+  --void: #000000;
+  --obsidian: #050505;
+  --ash: #1a1a1a;
+  --smoke: #262626;
+  --slate: #363636;
+  --iron: #4a4a4a;
+  --silver: #6a6a6a;
+  --mist: #8a8a8a;
+  --bone: #cccccc;
+  --ivory: #e2e2e2;
+  --white: #eeeeee;
+
+  --emerald: #34d399;
+  --emerald-deep: rgba(52, 211, 153, 0.025);
+  --emerald-border: rgba(52, 211, 153, 0.10);
+  --red-soft: #ff8a8a;
+  --red-bg: rgba(255, 120, 120, 0.05);
+  --red-border: rgba(255, 120, 120, 0.10);
+
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --font-serif: 'Cormorant Garamond', Georgia, serif;
+  --font-sans: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'JetBrains Mono', 'SF Mono', monospace;
+}
+
+html {
+  background: var(--void);
+}
+
+body {
+  font-family: var(--font-sans);
+  color: var(--white);
+  -webkit-font-smoothing: antialiased;
+}
+
+@keyframes breathe-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes blur-reveal {
+  0% {
+    filter: blur(12px);
+    opacity: 0;
+  }
+
+  100% {
+    filter: blur(0);
+    opacity: 1;
+  }
+}
+
+.animate-breathe-in {
+  animation: breathe-in 1.2s var(--ease-out-expo) forwards;
+}
+
+.animate-blur-reveal {
+  animation: blur-reveal 1.8s var(--ease-out-expo) 2.8s forwards;
+  opacity: 0;
+}
