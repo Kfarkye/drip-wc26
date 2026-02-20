@@ -1,4 +1,41 @@
+# The Drip — WC26 Cross-Ecosystem Intelligence
+# Last updated: 2026-02-18
+
+# ═══ GOOGLE ═══
+User-agent: Googlebot
+Allow: /
+
+# ═══ BING (powers ChatGPT Search) ═══
+User-agent: Bingbot
+Allow: /
+
+# ═══ OPENAI — Search (citations in ChatGPT) ═══
+User-agent: OAI-SearchBot
+Allow: /
+
+# ═══ OPENAI — User browsing (on-demand fetches) ═══
+User-agent: ChatGPT-User
+Allow: /
+
+# ═══ OPENAI — Training (DO NOT feed models) ═══
+User-agent: GPTBot
+Disallow: /
+
+# ═══ ANTHROPIC — Search (citations in Claude) ═══
+User-agent: ClaudeBot
+Allow: /
+
+# ═══ ANTHROPIC — Training (DO NOT feed models) ═══
+User-agent: anthropic-ai
+Disallow: /
+
+# ═══ PERPLEXITY ═══
+User-agent: PerplexityBot
+Allow: /
+
+# ═══ DEFAULT — Allow all other search engines ═══
 User-agent: *
 Allow: /
 
-Sitemap: https://your-domain.netlify.app/sitemap.xml
+# Sitemap
+Sitemap: https://drip-wc26.vercel.app/sitemap.xml

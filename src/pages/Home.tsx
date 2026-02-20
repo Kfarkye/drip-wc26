@@ -15,16 +15,16 @@ export const Home: React.FC = () => {
                         <div className="text-[var(--silver)] text-sm font-sans">USA &bull; Chile &bull; Ecuador &bull; Peru</div>
                     </a>
 
+                    <a href="/edges/golden-boot-mbappe" className="group p-8 rounded-[14px] bg-[var(--card-bg)] border border-[var(--card-border)] hover:border-[var(--emerald)]/40 transition-all">
+                        <div className="text-[var(--emerald)] text-xs uppercase tracking-[0.3em] font-[500] mb-4 font-sans">LIVE EDGE</div>
+                        <div className="text-2xl font-sans font-[300] text-[var(--ivory)] mb-2">Mbappé Golden Boot</div>
+                        <div className="text-[var(--silver)] text-sm font-sans">10.5% Cross-Ecosystem Edge</div>
+                    </a>
+
                     <div className="p-8 rounded-[14px] bg-[var(--card-bg)]/50 border border-[var(--card-border)]/50 opacity-40 cursor-not-allowed">
                         <div className="text-[var(--silver)] text-xs uppercase tracking-[0.3em] font-[500] mb-4 font-sans">COMING SOON</div>
                         <div className="text-2xl font-sans font-[300] text-[var(--ivory)] mb-2">Group A</div>
                         <div className="text-[var(--silver)] text-sm font-sans">Mexico &bull; TBD &bull; TBD &bull; TBD</div>
-                    </div>
-
-                    <div className="p-8 rounded-[14px] bg-[var(--card-bg)]/50 border border-[var(--card-border)]/50 opacity-40 cursor-not-allowed">
-                        <div className="text-[var(--silver)] text-xs uppercase tracking-[0.3em] font-[500] mb-4 font-sans">COMING SOON</div>
-                        <div className="text-2xl font-sans font-[300] text-[var(--ivory)] mb-2">Group B</div>
-                        <div className="text-[var(--silver)] text-sm font-sans">Canada &bull; TBD &bull; TBD &bull; TBD</div>
                     </div>
                 </div>
             </div>

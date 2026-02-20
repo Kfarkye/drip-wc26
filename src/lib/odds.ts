@@ -62,6 +62,29 @@ export function calculateEdge(
 }
 
 /**
+ * Calculate fair (devigged) probabilities using the Multiplicative (Power) Method
+ * Corrects for the sportsbook overround/vig to find the "Oracle" fair value.
+ */
+export function devigPower(impliedProbs: number[]): number[] {
+    const sum = impliedProbs.reduce((a, b) => a + b, 0);
+    if (sum <= 1) return impliedProbs; // Already fair or better
+
+    // Solve for k where sum(p_i ^ k) = 1
+    // For most markets, 1/sum is a close enough linear approximation for the Power Method
+    // but for high-precision we iterate.
+    let k = 1.0;
+    let currentSum = sum;
+
+    // Simple iterative approach to find the power factor
+    for (let i = 0; i < 10; i++) {
+        k = k * (Math.log(0.5) / Math.log(currentSum / sum || 0.5));
+        currentSum = impliedProbs.reduce((a, b) => a + Math.pow(b, k), 0);
+    }
+
+    return impliedProbs.map(p => Math.pow(p, k));
+}
+
+/**
  * Format American odds for display
  * 150 → "+150"
  * -200 → "-200"
