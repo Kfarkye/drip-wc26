@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 interface EdgeCardProps {
     marketName: string;
@@ -11,6 +12,7 @@ interface EdgeCardProps {
     edgePercentage: number;
     confidence?: 'high' | 'medium' | 'low';
     volume?: number;
+    link?: string;
 }
 
 export const EdgeCard: React.FC<EdgeCardProps> = ({
@@ -24,8 +26,9 @@ export const EdgeCard: React.FC<EdgeCardProps> = ({
     edgePercentage,
     confidence,
     volume,
+    link,
 }) => {
-    return (
+    const card = (
         <div className="relative overflow-hidden rounded-[14px] bg-[var(--card-bg)] border border-[var(--card-border)] p-8 animate-breathe-in">
             <div className="flex justify-between items-start mb-6">
                 <div className="text-[18px] font-[300] tracking-tight font-sans text-ivory/80">
@@ -91,4 +94,10 @@ export const EdgeCard: React.FC<EdgeCardProps> = ({
             </div>
         </div>
     );
+
+    if (link) {
+        return <Link to={link} className="block hover:scale-[1.02] transition-transform">{card}</Link>;
+    }
+
+    return card;
 };
