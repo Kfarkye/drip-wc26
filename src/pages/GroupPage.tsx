@@ -56,6 +56,7 @@ export const GroupPage: React.FC = () => {
                         edgePercentage={5.2}
                         confidence="high"
                         volume={124000}
+                        link="/edges/usa-to-win-group-d"
                     />
                     <EdgeCard
                         marketName="Chile to Win Group D"
@@ -68,6 +69,7 @@ export const GroupPage: React.FC = () => {
                         edgePercentage={3.2}
                         confidence="medium"
                         volume={48000}
+                        link="/edges/chile-to-win-group-d"
                     />
                     <EdgeCard
                         marketName="Ecuador to Win Group D"
@@ -80,6 +82,7 @@ export const GroupPage: React.FC = () => {
                         edgePercentage={2.4}
                         confidence="low"
                         volume={8500}
+                        link="/edges/ecuador-to-win-group-d"
                     />
                 </div>
             </section>
@@ -104,6 +107,7 @@ export const GroupPage: React.FC = () => {
                         edgePercentage={3.5}
                         confidence="medium"
                         volume={32000}
+                        link="/edges/usa-to-win-match-1"
                     />
                 </div>
             </section>
