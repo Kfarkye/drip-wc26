@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 :root {
-  --void: #000000;
+  --void: #0a0a0a;
   --obsidian: #050505;
   --ash: #1a1a1a;
   --smoke: #262626;
@@ -13,9 +13,12 @@
   --ivory: #e2e2e2;
   --white: #eeeeee;
 
-  --emerald: #34d399;
-  --emerald-deep: rgba(52, 211, 153, 0.025);
-  --emerald-border: rgba(52, 211, 153, 0.10);
+  --card-bg: #161616;
+  --card-border: #232323;
+
+  --emerald: #00c978;
+  --emerald-deep: rgba(0, 201, 120, 0.025);
+  --emerald-border: rgba(0, 201, 120, 0.10);
   --red-soft: #ff8a8a;
   --red-bg: rgba(255, 120, 120, 0.05);
   --red-border: rgba(255, 120, 120, 0.10);
@@ -34,6 +37,29 @@ body {
   font-family: var(--font-sans);
   color: var(--white);
   -webkit-font-smoothing: antialiased;
+}
+
+/* Grain overlay */
+.grain-overlay::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: 0.025;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 256px 256px;
+}
+
+/* Vignette */
+.vignette::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 9998;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, transparent 40%, var(--void) 100%);
 }
 
 @keyframes breathe-in {
