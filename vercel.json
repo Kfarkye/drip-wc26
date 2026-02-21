@@ -1,5 +1,9 @@
 {
   "rewrites": [
+    { "source": "/edges/:path*", "destination": "/edges/:path*/index.html" },
+    { "source": "/sitemap.xml", "destination": "/sitemap.xml" },
+    { "source": "/robots.txt", "destination": "/robots.txt" },
+    { "source": "/googled79bcec79cf706fb.html", "destination": "/googled79bcec79cf706fb.html" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
