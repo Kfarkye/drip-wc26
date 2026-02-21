@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "prerender": "tsx scripts/prerender-matches.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.96.0",
@@ -28,6 +29,7 @@
     "globals": "^16.5.0",
     "netlify-cli": "^23.15.1",
     "tailwindcss": "^4.1.18",
+    "tsx": "^4.21.0",
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.48.0",
     "vercel": "^50.19.1",
