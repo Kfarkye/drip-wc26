@@ -38,4 +38,4 @@ User-agent: *
 Allow: /
 
 # Sitemap
-Sitemap: https://drip-wc26.vercel.app/sitemap.xml
+Sitemap: https://thedrip.to/sitemap.xml
