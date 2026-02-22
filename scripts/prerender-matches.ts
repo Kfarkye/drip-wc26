@@ -10,7 +10,7 @@ import { writeFileSync, mkdirSync, existsSync } from 'fs';
 import { resolve } from 'path';
 import { ALL_MATCHES, type MatchSeed } from '../src/data/all-matches';
 
-const SITE_URL = 'https://thedrip.ai';
+const SITE_URL = 'https://thedrip.to';
 const PUBLIC_DIR = resolve(import.meta.dirname, '..', 'public');
 
 function formatDate(isoDate: string): string {

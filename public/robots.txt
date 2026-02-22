@@ -38,4 +38,4 @@ User-agent: *
 Allow: /
 
 # Sitemap
-Sitemap: https://thedrip.ai/sitemap.xml
+Sitemap: https://thedrip.to/sitemap.xml

@@ -1,9 +1,9 @@
 #!/bin/bash
 # verify-pages.sh — Check all 104+ static pages return HTTP 200
 # Usage: ./scripts/verify-pages.sh [base_url]
-# Default: https://thedrip.ai
+# Default: https://thedrip.to
 
-BASE_URL="${1:-https://thedrip.ai}"
+BASE_URL="${1:-https://thedrip.to}"
 SITEMAP_URL="${BASE_URL}/sitemap.xml"
 PASS=0
 FAIL=0
