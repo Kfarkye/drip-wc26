@@ -22,20 +22,41 @@
   <!-- JSON-LD: SportsEvent -->
   <script type="application/ld+json">
   {
-    "@context": "https://schema.org",
-    "@type": "SportsEvent",
-    "name": "Semifinal — Match 101",
-    "startDate": "2026-07-14T15:00:00-04:00",
-    "location": { "@type": "Place", "name": "AT&amp;T Stadium", "address": "Arlington" },
-    "homeTeam": { "@type": "SportsTeam", "name": "W97" },
-    "awayTeam": { "@type": "SportsTeam", "name": "W98" },
-    "description": "Cross-venue odds comparison for Semifinal — Match 101. World Cup 2026.",
-    "superEvent": {
+      "@context": "https://schema.org",
       "@type": "SportsEvent",
-      "name": "FIFA World Cup 2026",
-      "startDate": "2026-06-11",
-      "endDate": "2026-07-19"
-    }
+      "name": "Semifinal — Match 101",
+      "startDate": "2026-07-14T15:00:00-04:00",
+      "location": {
+          "@type": "Place",
+          "name": "AT&amp;T Stadium",
+          "address": {
+              "@type": "PostalAddress",
+              "addressLocality": "Arlington"
+          }
+      },
+      "homeTeam": {
+          "@type": "SportsTeam",
+          "name": "W97"
+      },
+      "awayTeam": {
+          "@type": "SportsTeam",
+          "name": "W98"
+      },
+      "description": "Cross-venue odds comparison for Semifinal — Match 101. World Cup 2026.",
+      "superEvent": {
+          "@type": "SportsEvent",
+          "name": "FIFA World Cup 2026",
+          "startDate": "2026-06-11",
+          "endDate": "2026-07-19"
+      },
+      "eventStatus": "https://schema.org/EventScheduled",
+      "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
+      "organizer": {
+          "@type": "Organization",
+          "name": "FIFA",
+          "url": "https://www.fifa.com"
+      },
+      "url": "https://thedrip.to/edges/sf-1-2026-07-14/"
   }
   </script>
 

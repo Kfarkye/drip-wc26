@@ -22,20 +22,45 @@
   <!-- JSON-LD: SportsEvent -->
   <script type="application/ld+json">
   {
-    "@context": "https://schema.org",
-    "@type": "SportsEvent",
-    "name": "Round of 32 — Match 84",
-    "startDate": "2026-07-01T19:00:00-04:00",
-    "location": { "@type": "Place", "name": "Mercedes-Benz Stadium", "address": "Atlanta" },
-    "homeTeam": { "@type": "SportsTeam", "name": "1H" },
-    "awayTeam": { "@type": "SportsTeam", "name": "3G/H/L" },
-    "description": "Cross-venue odds comparison for Round of 32 — Match 84. World Cup 2026.",
-    "superEvent": {
+      "@context": "https://schema.org",
       "@type": "SportsEvent",
-      "name": "FIFA World Cup 2026",
-      "startDate": "2026-06-11",
-      "endDate": "2026-07-19"
-    }
+      "name": "Round of 32 — Match 84",
+      "startDate": "2026-07-01T19:00:00-04:00",
+      "location": {
+          "@type": "Place",
+          "name": "Mercedes-Benz Stadium",
+          "address": {
+              "@type": "PostalAddress",
+              "streetAddress": "1 AMB Dr NW",
+              "addressLocality": "Atlanta",
+              "postalCode": "30313",
+              "addressRegion": "GA",
+              "addressCountry": "US"
+          }
+      },
+      "homeTeam": {
+          "@type": "SportsTeam",
+          "name": "1H"
+      },
+      "awayTeam": {
+          "@type": "SportsTeam",
+          "name": "3G/H/L"
+      },
+      "description": "Cross-venue odds comparison for Round of 32 — Match 84. World Cup 2026.",
+      "superEvent": {
+          "@type": "SportsEvent",
+          "name": "FIFA World Cup 2026",
+          "startDate": "2026-06-11",
+          "endDate": "2026-07-19"
+      },
+      "eventStatus": "https://schema.org/EventScheduled",
+      "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
+      "organizer": {
+          "@type": "Organization",
+          "name": "FIFA",
+          "url": "https://www.fifa.com"
+      },
+      "url": "https://thedrip.to/edges/r32-match-12-2026-07-01/"
   }
   </script>
 

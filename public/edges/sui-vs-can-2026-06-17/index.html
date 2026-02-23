@@ -22,20 +22,45 @@
   <!-- JSON-LD: SportsEvent -->
   <script type="application/ld+json">
   {
-    "@context": "https://schema.org",
-    "@type": "SportsEvent",
-    "name": "Switzerland vs Canada",
-    "startDate": "2026-06-17T18:00:00-07:00",
-    "location": { "@type": "Place", "name": "BC Place", "address": "Vancouver" },
-    "homeTeam": { "@type": "SportsTeam", "name": "Canada" },
-    "awayTeam": { "@type": "SportsTeam", "name": "Switzerland" },
-    "description": "Cross-venue odds comparison for Switzerland vs Canada. World Cup 2026.",
-    "superEvent": {
+      "@context": "https://schema.org",
       "@type": "SportsEvent",
-      "name": "FIFA World Cup 2026",
-      "startDate": "2026-06-11",
-      "endDate": "2026-07-19"
-    }
+      "name": "Switzerland vs Canada",
+      "startDate": "2026-06-17T18:00:00-07:00",
+      "location": {
+          "@type": "Place",
+          "name": "BC Place",
+          "address": {
+              "@type": "PostalAddress",
+              "streetAddress": "777 Pacific Blvd",
+              "addressLocality": "Vancouver",
+              "postalCode": "V6B 4Y8",
+              "addressRegion": "BC",
+              "addressCountry": "CA"
+          }
+      },
+      "homeTeam": {
+          "@type": "SportsTeam",
+          "name": "Canada"
+      },
+      "awayTeam": {
+          "@type": "SportsTeam",
+          "name": "Switzerland"
+      },
+      "description": "Cross-venue odds comparison for Switzerland vs Canada. World Cup 2026.",
+      "superEvent": {
+          "@type": "SportsEvent",
+          "name": "FIFA World Cup 2026",
+          "startDate": "2026-06-11",
+          "endDate": "2026-07-19"
+      },
+      "eventStatus": "https://schema.org/EventScheduled",
+      "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
+      "organizer": {
+          "@type": "Organization",
+          "name": "FIFA",
+          "url": "https://www.fifa.com"
+      },
+      "url": "https://thedrip.to/edges/sui-vs-can-2026-06-17/"
   }
   </script>
 

@@ -22,20 +22,45 @@
   <!-- JSON-LD: SportsEvent -->
   <script type="application/ld+json">
   {
-    "@context": "https://schema.org",
-    "@type": "SportsEvent",
-    "name": "Iran vs Egypt",
-    "startDate": "2026-06-25T18:00:00-04:00",
-    "location": { "@type": "Place", "name": "Levi's Stadium", "address": "Santa Clara" },
-    "homeTeam": { "@type": "SportsTeam", "name": "Egypt" },
-    "awayTeam": { "@type": "SportsTeam", "name": "Iran" },
-    "description": "Cross-venue odds comparison for Iran vs Egypt. World Cup 2026.",
-    "superEvent": {
+      "@context": "https://schema.org",
       "@type": "SportsEvent",
-      "name": "FIFA World Cup 2026",
-      "startDate": "2026-06-11",
-      "endDate": "2026-07-19"
-    }
+      "name": "Iran vs Egypt",
+      "startDate": "2026-06-25T18:00:00-04:00",
+      "location": {
+          "@type": "Place",
+          "name": "Levi's Stadium",
+          "address": {
+              "@type": "PostalAddress",
+              "streetAddress": "4900 Marie P DeBartolo Way",
+              "addressLocality": "Santa Clara",
+              "postalCode": "95054",
+              "addressRegion": "CA",
+              "addressCountry": "US"
+          }
+      },
+      "homeTeam": {
+          "@type": "SportsTeam",
+          "name": "Egypt"
+      },
+      "awayTeam": {
+          "@type": "SportsTeam",
+          "name": "Iran"
+      },
+      "description": "Cross-venue odds comparison for Iran vs Egypt. World Cup 2026.",
+      "superEvent": {
+          "@type": "SportsEvent",
+          "name": "FIFA World Cup 2026",
+          "startDate": "2026-06-11",
+          "endDate": "2026-07-19"
+      },
+      "eventStatus": "https://schema.org/EventScheduled",
+      "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
+      "organizer": {
+          "@type": "Organization",
+          "name": "FIFA",
+          "url": "https://www.fifa.com"
+      },
+      "url": "https://thedrip.to/edges/irn-vs-egy-2026-06-25/"
   }
   </script>
 

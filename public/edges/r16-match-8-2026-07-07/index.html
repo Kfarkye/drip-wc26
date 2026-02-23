@@ -22,20 +22,45 @@
   <!-- JSON-LD: SportsEvent -->
   <script type="application/ld+json">
   {
-    "@context": "https://schema.org",
-    "@type": "SportsEvent",
-    "name": "Round of 16 — Match 96",
-    "startDate": "2026-07-07T16:00:00-04:00",
-    "location": { "@type": "Place", "name": "Lincoln Financial Field", "address": "Philadelphia" },
-    "homeTeam": { "@type": "SportsTeam", "name": "W87" },
-    "awayTeam": { "@type": "SportsTeam", "name": "W88" },
-    "description": "Cross-venue odds comparison for Round of 16 — Match 96. World Cup 2026.",
-    "superEvent": {
+      "@context": "https://schema.org",
       "@type": "SportsEvent",
-      "name": "FIFA World Cup 2026",
-      "startDate": "2026-06-11",
-      "endDate": "2026-07-19"
-    }
+      "name": "Round of 16 — Match 96",
+      "startDate": "2026-07-07T16:00:00-04:00",
+      "location": {
+          "@type": "Place",
+          "name": "Lincoln Financial Field",
+          "address": {
+              "@type": "PostalAddress",
+              "streetAddress": "1 Lincoln Financial Field Way",
+              "addressLocality": "Philadelphia",
+              "postalCode": "19148",
+              "addressRegion": "PA",
+              "addressCountry": "US"
+          }
+      },
+      "homeTeam": {
+          "@type": "SportsTeam",
+          "name": "W87"
+      },
+      "awayTeam": {
+          "@type": "SportsTeam",
+          "name": "W88"
+      },
+      "description": "Cross-venue odds comparison for Round of 16 — Match 96. World Cup 2026.",
+      "superEvent": {
+          "@type": "SportsEvent",
+          "name": "FIFA World Cup 2026",
+          "startDate": "2026-06-11",
+          "endDate": "2026-07-19"
+      },
+      "eventStatus": "https://schema.org/EventScheduled",
+      "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
+      "organizer": {
+          "@type": "Organization",
+          "name": "FIFA",
+          "url": "https://www.fifa.com"
+      },
+      "url": "https://thedrip.to/edges/r16-match-8-2026-07-07/"
   }
   </script>
 

@@ -22,20 +22,45 @@
   <!-- JSON-LD: SportsEvent -->
   <script type="application/ld+json">
   {
-    "@context": "https://schema.org",
-    "@type": "SportsEvent",
-    "name": "Round of 32 — Match 85",
-    "startDate": "2026-07-02T13:00:00-04:00",
-    "location": { "@type": "Place", "name": "MetLife Stadium", "address": "East Rutherford" },
-    "homeTeam": { "@type": "SportsTeam", "name": "2I" },
-    "awayTeam": { "@type": "SportsTeam", "name": "2J" },
-    "description": "Cross-venue odds comparison for Round of 32 — Match 85. World Cup 2026.",
-    "superEvent": {
+      "@context": "https://schema.org",
       "@type": "SportsEvent",
-      "name": "FIFA World Cup 2026",
-      "startDate": "2026-06-11",
-      "endDate": "2026-07-19"
-    }
+      "name": "Round of 32 — Match 85",
+      "startDate": "2026-07-02T13:00:00-04:00",
+      "location": {
+          "@type": "Place",
+          "name": "MetLife Stadium",
+          "address": {
+              "@type": "PostalAddress",
+              "streetAddress": "1 MetLife Stadium Dr",
+              "addressLocality": "East Rutherford",
+              "postalCode": "07073",
+              "addressRegion": "NJ",
+              "addressCountry": "US"
+          }
+      },
+      "homeTeam": {
+          "@type": "SportsTeam",
+          "name": "2I"
+      },
+      "awayTeam": {
+          "@type": "SportsTeam",
+          "name": "2J"
+      },
+      "description": "Cross-venue odds comparison for Round of 32 — Match 85. World Cup 2026.",
+      "superEvent": {
+          "@type": "SportsEvent",
+          "name": "FIFA World Cup 2026",
+          "startDate": "2026-06-11",
+          "endDate": "2026-07-19"
+      },
+      "eventStatus": "https://schema.org/EventScheduled",
+      "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
+      "organizer": {
+          "@type": "Organization",
+          "name": "FIFA",
+          "url": "https://www.fifa.com"
+      },
+      "url": "https://thedrip.to/edges/r32-match-13-2026-07-02/"
   }
   </script>
 

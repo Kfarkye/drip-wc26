@@ -22,20 +22,45 @@
   <!-- JSON-LD: SportsEvent -->
   <script type="application/ld+json">
   {
-    "@context": "https://schema.org",
-    "@type": "SportsEvent",
-    "name": "Haiti vs Scotland",
-    "startDate": "2026-06-13T21:00:00-04:00",
-    "location": { "@type": "Place", "name": "Gillette Stadium", "address": "Foxborough" },
-    "homeTeam": { "@type": "SportsTeam", "name": "Scotland" },
-    "awayTeam": { "@type": "SportsTeam", "name": "Haiti" },
-    "description": "Cross-venue odds comparison for Haiti vs Scotland. World Cup 2026.",
-    "superEvent": {
+      "@context": "https://schema.org",
       "@type": "SportsEvent",
-      "name": "FIFA World Cup 2026",
-      "startDate": "2026-06-11",
-      "endDate": "2026-07-19"
-    }
+      "name": "Haiti vs Scotland",
+      "startDate": "2026-06-13T21:00:00-04:00",
+      "location": {
+          "@type": "Place",
+          "name": "Gillette Stadium",
+          "address": {
+              "@type": "PostalAddress",
+              "streetAddress": "1 Patriot Pl",
+              "addressLocality": "Foxborough",
+              "postalCode": "02035",
+              "addressRegion": "MA",
+              "addressCountry": "US"
+          }
+      },
+      "homeTeam": {
+          "@type": "SportsTeam",
+          "name": "Scotland"
+      },
+      "awayTeam": {
+          "@type": "SportsTeam",
+          "name": "Haiti"
+      },
+      "description": "Cross-venue odds comparison for Haiti vs Scotland. World Cup 2026.",
+      "superEvent": {
+          "@type": "SportsEvent",
+          "name": "FIFA World Cup 2026",
+          "startDate": "2026-06-11",
+          "endDate": "2026-07-19"
+      },
+      "eventStatus": "https://schema.org/EventScheduled",
+      "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
+      "organizer": {
+          "@type": "Organization",
+          "name": "FIFA",
+          "url": "https://www.fifa.com"
+      },
+      "url": "https://thedrip.to/edges/hai-vs-sco-2026-06-13/"
   }
   </script>
 

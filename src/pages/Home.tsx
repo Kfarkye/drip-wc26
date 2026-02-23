@@ -12,7 +12,7 @@ export const Home: React.FC = () => {
                     <a href="/group/d" className="group p-8 rounded-[14px] bg-[var(--card-bg)] border border-[var(--card-border)] hover:border-[var(--emerald)]/40 transition-all">
                         <div className="text-[var(--emerald)] text-xs uppercase tracking-[0.3em] font-[500] mb-4 font-sans">LIVE DATA</div>
                         <div className="text-2xl font-sans font-[300] text-[var(--ivory)] mb-2">Group D</div>
-                        <div className="text-[var(--silver)] text-sm font-sans">USA &bull; Chile &bull; Ecuador &bull; Peru</div>
+                        <div className="text-[var(--silver)] text-sm font-sans">USA &bull; Paraguay &bull; Australia &bull; TBD</div>
                     </a>
 
                     <a href="/edges/golden-boot-mbappe" className="group p-8 rounded-[14px] bg-[var(--card-bg)] border border-[var(--card-border)] hover:border-[var(--emerald)]/40 transition-all">

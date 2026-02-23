@@ -22,20 +22,45 @@
   <!-- JSON-LD: SportsEvent -->
   <script type="application/ld+json">
   {
-    "@context": "https://schema.org",
-    "@type": "SportsEvent",
-    "name": "Cape Verde vs Spain",
-    "startDate": "2026-06-15T12:00:00-04:00",
-    "location": { "@type": "Place", "name": "Mercedes-Benz Stadium", "address": "Atlanta" },
-    "homeTeam": { "@type": "SportsTeam", "name": "Spain" },
-    "awayTeam": { "@type": "SportsTeam", "name": "Cape Verde" },
-    "description": "Cross-venue odds comparison for Cape Verde vs Spain. World Cup 2026.",
-    "superEvent": {
+      "@context": "https://schema.org",
       "@type": "SportsEvent",
-      "name": "FIFA World Cup 2026",
-      "startDate": "2026-06-11",
-      "endDate": "2026-07-19"
-    }
+      "name": "Cape Verde vs Spain",
+      "startDate": "2026-06-15T12:00:00-04:00",
+      "location": {
+          "@type": "Place",
+          "name": "Mercedes-Benz Stadium",
+          "address": {
+              "@type": "PostalAddress",
+              "streetAddress": "1 AMB Dr NW",
+              "addressLocality": "Atlanta",
+              "postalCode": "30313",
+              "addressRegion": "GA",
+              "addressCountry": "US"
+          }
+      },
+      "homeTeam": {
+          "@type": "SportsTeam",
+          "name": "Spain"
+      },
+      "awayTeam": {
+          "@type": "SportsTeam",
+          "name": "Cape Verde"
+      },
+      "description": "Cross-venue odds comparison for Cape Verde vs Spain. World Cup 2026.",
+      "superEvent": {
+          "@type": "SportsEvent",
+          "name": "FIFA World Cup 2026",
+          "startDate": "2026-06-11",
+          "endDate": "2026-07-19"
+      },
+      "eventStatus": "https://schema.org/EventScheduled",
+      "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
+      "organizer": {
+          "@type": "Organization",
+          "name": "FIFA",
+          "url": "https://www.fifa.com"
+      },
+      "url": "https://thedrip.to/edges/cpv-vs-esp-2026-06-15/"
   }
   </script>
 

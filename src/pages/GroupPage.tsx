@@ -11,15 +11,15 @@ export const GroupPage: React.FC = () => {
     const faqs = [
         {
             question: "Who will win World Cup 2026 Group D?",
-            answer: "The United States is favored to win Group D at +150 odds (40% implied probability) on major sportsbooks. Prediction markets price USA at 45%, suggesting the hosts have a slightly higher chance than sportsbooks reflect. Chile, Ecuador, and Peru are viable challengers with combined implied probability of approximately 55%."
+            answer: "The United States is favored to win Group D at +125 odds (44% implied probability) on major sportsbooks. Prediction markets price USA at 48%, suggesting the hosts have a slightly higher chance than sportsbooks reflect. Paraguay, Australia, and a UEFA Playoff C winner are viable challengers with combined implied probability of approximately 52%."
         },
         {
-            question: "What are the odds for USA vs Chile at the 2026 World Cup?",
-            answer: "USA vs Chile is scheduled for June 13, 2026 at SoFi Stadium. DraftKings lists USA at approximately -160, Chile at +380, and the draw at +280. Prediction markets suggest USA has a 58% chance of winning the match."
+            question: "What are the odds for USA vs Paraguay at the 2026 World Cup?",
+            answer: "USA vs Paraguay is scheduled for June 12, 2026 at SoFi Stadium. DraftKings lists USA at approximately -160, Paraguay at +380, and the draw at +280. Prediction markets suggest USA has a 58% chance of winning the match."
         },
         {
             question: "Where is World Cup 2026 Group D being played?",
-            answer: "Group D matches are hosted across three American venues: SoFi Stadium in Inglewood, California; Q2 Stadium in Austin, Texas; and MetLife Stadium in East Rutherford, New Jersey. The USA plays their matches at SoFi Stadium and MetLife Stadium."
+            answer: "Group D matches are hosted across American venues: SoFi Stadium in Inglewood, California; Mercedes-Benz Stadium in Atlanta, Georgia; and Lincoln Financial Field in Philadelphia, Pennsylvania. The USA plays their matches at SoFi Stadium."
         },
         {
             question: "What is the edge in sports betting?",
@@ -41,25 +41,25 @@ export const GroupPage: React.FC = () => {
                     Group D Overview
                 </h2>
                 <p className="text-lg text-[var(--silver)] leading-relaxed mb-12 max-w-4xl italic font-serif">
-                    "The United States enters World Cup 2026 Group D as favorites at +150 on DraftKings, implying 40% win probability. Prediction markets on Kalshi price USA group winners at 45 cents, implying 45%. The 5.0% gap suggests sportsbooks are undervaluing the host nation's advantage at SoFi Stadium and MetLife Stadium."
+                    "The United States enters World Cup 2026 Group D as favorites at +125 on DraftKings, implying 44% win probability. Prediction markets on Kalshi price USA group winners at 48 cents, implying 48%. The 4.0% gap suggests sportsbooks are undervaluing the host nation's advantage at SoFi Stadium."
                 </p>
 
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                     <EdgeCard
                         marketName="USA to Win Group D"
                         sportsbookName="DraftKings"
-                        sportsbookOdds="+150"
+                        sportsbookOdds="+125"
                         sportsbookLink="https://www.draftkings.com"
                         predictionName="Kalshi"
-                        predictionPrice="45¢"
+                        predictionPrice="48¢"
                         predictionLink="https://www.kalshi.com"
-                        edgePercentage={5.2}
+                        edgePercentage={4.0}
                         confidence="high"
                         volume={124000}
                         link="/edges/usa-to-win-group-d"
                     />
                     <EdgeCard
-                        marketName="Chile to Win Group D"
+                        marketName="Paraguay to Win Group D"
                         sportsbookName="DraftKings"
                         sportsbookOdds="+350"
                         sportsbookLink="https://www.draftkings.com"
@@ -69,10 +69,10 @@ export const GroupPage: React.FC = () => {
                         edgePercentage={3.2}
                         confidence="medium"
                         volume={48000}
-                        link="/edges/chile-to-win-group-d"
+                        link="/edges/paraguay-to-win-group-d"
                     />
                     <EdgeCard
-                        marketName="Ecuador to Win Group D"
+                        marketName="Australia to Win Group D"
                         sportsbookName="DraftKings"
                         sportsbookOdds="+280"
                         sportsbookLink="https://www.draftkings.com"
@@ -82,7 +82,7 @@ export const GroupPage: React.FC = () => {
                         edgePercentage={2.4}
                         confidence="low"
                         volume={8500}
-                        link="/edges/ecuador-to-win-group-d"
+                        link="/edges/australia-to-win-group-d"
                     />
                 </div>
             </section>
@@ -90,10 +90,10 @@ export const GroupPage: React.FC = () => {
             <section className="mb-20">
                 <h2 className="text-2xl font-sans font-[300] mb-8 text-[var(--ivory)] flex items-center gap-4">
                     <span className="h-[1px] w-8 bg-[var(--emerald)]/40" />
-                    USA vs Chile
+                    USA vs Paraguay
                 </h2>
                 <p className="text-lg text-[var(--silver)] leading-relaxed mb-12 max-w-4xl italic font-serif">
-                    "USA vs Chile kicks off June 13 at SoFi Stadium in Inglewood, California. DraftKings lists USA at -160 (61.5% implied). Kalshi prices USA to win this match at 58 cents (58% implied). The 3.5% discrepancy indicates marginal sportsbook overconfidence in the hosts for the opening fixture."
+                    "USA vs Paraguay kicks off June 12 at SoFi Stadium in Inglewood, California. DraftKings lists USA at -160 (61.5% implied). Kalshi prices USA to win this match at 58 cents (58% implied). The 3.5% discrepancy indicates marginal sportsbook overconfidence in the hosts for the opening fixture."
                 </p>
                 <div className="max-w-md">
                     <EdgeCard
@@ -118,7 +118,7 @@ export const GroupPage: React.FC = () => {
                     Edge Analysis
                 </h2>
                 <p className="text-lg text-[var(--silver)] leading-relaxed max-w-4xl italic font-serif">
-                    "Group D contains the largest host-nation pricing gap in the 2026 World Cup. Across all 12 groups, the USA group winner market shows a 5.2% edge between sportsbook consensus and prediction market pricing. This gap is driven by emotional home-crowd betting inflating sportsbook liability, while prediction markets reflect sharper probability assessment." [1]
+                    "Group D contains the largest host-nation pricing gap in the 2026 World Cup. Across all 12 groups, the USA group winner market shows a 4.0% edge between sportsbook consensus and prediction market pricing. This gap is driven by emotional home-crowd betting inflating sportsbook liability, while prediction markets reflect sharper probability assessment." [1]
                 </p>
             </section>
 

@@ -22,20 +22,45 @@
   <!-- JSON-LD: SportsEvent -->
   <script type="application/ld+json">
   {
-    "@context": "https://schema.org",
-    "@type": "SportsEvent",
-    "name": "Paraguay vs United States",
-    "startDate": "2026-06-12T21:00:00-04:00",
-    "location": { "@type": "Place", "name": "SoFi Stadium", "address": "Inglewood" },
-    "homeTeam": { "@type": "SportsTeam", "name": "United States" },
-    "awayTeam": { "@type": "SportsTeam", "name": "Paraguay" },
-    "description": "Cross-venue odds comparison for Paraguay vs United States. World Cup 2026.",
-    "superEvent": {
+      "@context": "https://schema.org",
       "@type": "SportsEvent",
-      "name": "FIFA World Cup 2026",
-      "startDate": "2026-06-11",
-      "endDate": "2026-07-19"
-    }
+      "name": "Paraguay vs United States",
+      "startDate": "2026-06-12T21:00:00-04:00",
+      "location": {
+          "@type": "Place",
+          "name": "SoFi Stadium",
+          "address": {
+              "@type": "PostalAddress",
+              "streetAddress": "1001 Stadium Dr",
+              "addressLocality": "Inglewood",
+              "postalCode": "90301",
+              "addressRegion": "CA",
+              "addressCountry": "US"
+          }
+      },
+      "homeTeam": {
+          "@type": "SportsTeam",
+          "name": "United States"
+      },
+      "awayTeam": {
+          "@type": "SportsTeam",
+          "name": "Paraguay"
+      },
+      "description": "Cross-venue odds comparison for Paraguay vs United States. World Cup 2026.",
+      "superEvent": {
+          "@type": "SportsEvent",
+          "name": "FIFA World Cup 2026",
+          "startDate": "2026-06-11",
+          "endDate": "2026-07-19"
+      },
+      "eventStatus": "https://schema.org/EventScheduled",
+      "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
+      "organizer": {
+          "@type": "Organization",
+          "name": "FIFA",
+          "url": "https://www.fifa.com"
+      },
+      "url": "https://thedrip.to/edges/par-vs-usa-2026-06-12/"
   }
   </script>
 
@@ -76,7 +101,7 @@
   <!-- ABOVE THE FOLD -->
   <div class="matchup">
     <h1>Paraguay vs United States</h1>
-    <p class="meta">Saturday, June 13, 2026 · SoFi Stadium, Inglewood · Group D</p>
+    <p class="meta">Friday, June 12, 2026 · SoFi Stadium, Inglewood · Group D</p>
     <span class="gap-badge">Odds loading...</span>
   </div>
 

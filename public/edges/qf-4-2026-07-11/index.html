@@ -22,20 +22,45 @@
   <!-- JSON-LD: SportsEvent -->
   <script type="application/ld+json">
   {
-    "@context": "https://schema.org",
-    "@type": "SportsEvent",
-    "name": "Quarterfinal — Match 100",
-    "startDate": "2026-07-11T15:00:00-04:00",
-    "location": { "@type": "Place", "name": "Hard Rock Stadium", "address": "Miami Gardens" },
-    "homeTeam": { "@type": "SportsTeam", "name": "W95" },
-    "awayTeam": { "@type": "SportsTeam", "name": "W96" },
-    "description": "Cross-venue odds comparison for Quarterfinal — Match 100. World Cup 2026.",
-    "superEvent": {
+      "@context": "https://schema.org",
       "@type": "SportsEvent",
-      "name": "FIFA World Cup 2026",
-      "startDate": "2026-06-11",
-      "endDate": "2026-07-19"
-    }
+      "name": "Quarterfinal — Match 100",
+      "startDate": "2026-07-11T15:00:00-04:00",
+      "location": {
+          "@type": "Place",
+          "name": "Hard Rock Stadium",
+          "address": {
+              "@type": "PostalAddress",
+              "streetAddress": "347 Don Shula Dr",
+              "addressLocality": "Miami Gardens",
+              "postalCode": "33056",
+              "addressRegion": "FL",
+              "addressCountry": "US"
+          }
+      },
+      "homeTeam": {
+          "@type": "SportsTeam",
+          "name": "W95"
+      },
+      "awayTeam": {
+          "@type": "SportsTeam",
+          "name": "W96"
+      },
+      "description": "Cross-venue odds comparison for Quarterfinal — Match 100. World Cup 2026.",
+      "superEvent": {
+          "@type": "SportsEvent",
+          "name": "FIFA World Cup 2026",
+          "startDate": "2026-06-11",
+          "endDate": "2026-07-19"
+      },
+      "eventStatus": "https://schema.org/EventScheduled",
+      "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
+      "organizer": {
+          "@type": "Organization",
+          "name": "FIFA",
+          "url": "https://www.fifa.com"
+      },
+      "url": "https://thedrip.to/edges/qf-4-2026-07-11/"
   }
   </script>
 

@@ -22,20 +22,41 @@
   <!-- JSON-LD: SportsEvent -->
   <script type="application/ld+json">
   {
-    "@context": "https://schema.org",
-    "@type": "SportsEvent",
-    "name": "Ivory Coast vs Germany",
-    "startDate": "2026-06-24T18:00:00-04:00",
-    "location": { "@type": "Place", "name": "AT&amp;T Stadium", "address": "Arlington" },
-    "homeTeam": { "@type": "SportsTeam", "name": "Germany" },
-    "awayTeam": { "@type": "SportsTeam", "name": "Ivory Coast" },
-    "description": "Cross-venue odds comparison for Ivory Coast vs Germany. World Cup 2026.",
-    "superEvent": {
+      "@context": "https://schema.org",
       "@type": "SportsEvent",
-      "name": "FIFA World Cup 2026",
-      "startDate": "2026-06-11",
-      "endDate": "2026-07-19"
-    }
+      "name": "Ivory Coast vs Germany",
+      "startDate": "2026-06-24T18:00:00-04:00",
+      "location": {
+          "@type": "Place",
+          "name": "AT&amp;T Stadium",
+          "address": {
+              "@type": "PostalAddress",
+              "addressLocality": "Arlington"
+          }
+      },
+      "homeTeam": {
+          "@type": "SportsTeam",
+          "name": "Germany"
+      },
+      "awayTeam": {
+          "@type": "SportsTeam",
+          "name": "Ivory Coast"
+      },
+      "description": "Cross-venue odds comparison for Ivory Coast vs Germany. World Cup 2026.",
+      "superEvent": {
+          "@type": "SportsEvent",
+          "name": "FIFA World Cup 2026",
+          "startDate": "2026-06-11",
+          "endDate": "2026-07-19"
+      },
+      "eventStatus": "https://schema.org/EventScheduled",
+      "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
+      "organizer": {
+          "@type": "Organization",
+          "name": "FIFA",
+          "url": "https://www.fifa.com"
+      },
+      "url": "https://thedrip.to/edges/civ-vs-ger-2026-06-24/"
   }
   </script>
 

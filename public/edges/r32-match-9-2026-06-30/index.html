@@ -22,20 +22,45 @@
   <!-- JSON-LD: SportsEvent -->
   <script type="application/ld+json">
   {
-    "@context": "https://schema.org",
-    "@type": "SportsEvent",
-    "name": "Round of 32 — Match 81",
-    "startDate": "2026-06-30T19:00:00-04:00",
-    "location": { "@type": "Place", "name": "Levi's Stadium", "address": "Santa Clara" },
-    "homeTeam": { "@type": "SportsTeam", "name": "1F" },
-    "awayTeam": { "@type": "SportsTeam", "name": "3C/D/E" },
-    "description": "Cross-venue odds comparison for Round of 32 — Match 81. World Cup 2026.",
-    "superEvent": {
+      "@context": "https://schema.org",
       "@type": "SportsEvent",
-      "name": "FIFA World Cup 2026",
-      "startDate": "2026-06-11",
-      "endDate": "2026-07-19"
-    }
+      "name": "Round of 32 — Match 81",
+      "startDate": "2026-06-30T19:00:00-04:00",
+      "location": {
+          "@type": "Place",
+          "name": "Levi's Stadium",
+          "address": {
+              "@type": "PostalAddress",
+              "streetAddress": "4900 Marie P DeBartolo Way",
+              "addressLocality": "Santa Clara",
+              "postalCode": "95054",
+              "addressRegion": "CA",
+              "addressCountry": "US"
+          }
+      },
+      "homeTeam": {
+          "@type": "SportsTeam",
+          "name": "1F"
+      },
+      "awayTeam": {
+          "@type": "SportsTeam",
+          "name": "3C/D/E"
+      },
+      "description": "Cross-venue odds comparison for Round of 32 — Match 81. World Cup 2026.",
+      "superEvent": {
+          "@type": "SportsEvent",
+          "name": "FIFA World Cup 2026",
+          "startDate": "2026-06-11",
+          "endDate": "2026-07-19"
+      },
+      "eventStatus": "https://schema.org/EventScheduled",
+      "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
+      "organizer": {
+          "@type": "Organization",
+          "name": "FIFA",
+          "url": "https://www.fifa.com"
+      },
+      "url": "https://thedrip.to/edges/r32-match-9-2026-06-30/"
   }
   </script>
 

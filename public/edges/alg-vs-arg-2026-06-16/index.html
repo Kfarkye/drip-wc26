@@ -22,20 +22,45 @@
   <!-- JSON-LD: SportsEvent -->
   <script type="application/ld+json">
   {
-    "@context": "https://schema.org",
-    "@type": "SportsEvent",
-    "name": "Algeria vs Argentina",
-    "startDate": "2026-06-16T21:00:00-04:00",
-    "location": { "@type": "Place", "name": "GEHA Field at Arrowhead Stadium", "address": "Kansas City" },
-    "homeTeam": { "@type": "SportsTeam", "name": "Argentina" },
-    "awayTeam": { "@type": "SportsTeam", "name": "Algeria" },
-    "description": "Cross-venue odds comparison for Algeria vs Argentina. World Cup 2026.",
-    "superEvent": {
+      "@context": "https://schema.org",
       "@type": "SportsEvent",
-      "name": "FIFA World Cup 2026",
-      "startDate": "2026-06-11",
-      "endDate": "2026-07-19"
-    }
+      "name": "Algeria vs Argentina",
+      "startDate": "2026-06-16T21:00:00-04:00",
+      "location": {
+          "@type": "Place",
+          "name": "GEHA Field at Arrowhead Stadium",
+          "address": {
+              "@type": "PostalAddress",
+              "streetAddress": "1 Arrowhead Dr",
+              "addressLocality": "Kansas City",
+              "postalCode": "64129",
+              "addressRegion": "MO",
+              "addressCountry": "US"
+          }
+      },
+      "homeTeam": {
+          "@type": "SportsTeam",
+          "name": "Argentina"
+      },
+      "awayTeam": {
+          "@type": "SportsTeam",
+          "name": "Algeria"
+      },
+      "description": "Cross-venue odds comparison for Algeria vs Argentina. World Cup 2026.",
+      "superEvent": {
+          "@type": "SportsEvent",
+          "name": "FIFA World Cup 2026",
+          "startDate": "2026-06-11",
+          "endDate": "2026-07-19"
+      },
+      "eventStatus": "https://schema.org/EventScheduled",
+      "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
+      "organizer": {
+          "@type": "Organization",
+          "name": "FIFA",
+          "url": "https://www.fifa.com"
+      },
+      "url": "https://thedrip.to/edges/alg-vs-arg-2026-06-16/"
   }
   </script>
 

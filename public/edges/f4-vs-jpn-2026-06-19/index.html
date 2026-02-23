@@ -22,20 +22,45 @@
   <!-- JSON-LD: SportsEvent -->
   <script type="application/ld+json">
   {
-    "@context": "https://schema.org",
-    "@type": "SportsEvent",
-    "name": "UEFA Playoff B vs Japan",
-    "startDate": "2026-06-19T22:00:00-04:00",
-    "location": { "@type": "Place", "name": "GEHA Field at Arrowhead Stadium", "address": "Kansas City" },
-    "homeTeam": { "@type": "SportsTeam", "name": "Japan" },
-    "awayTeam": { "@type": "SportsTeam", "name": "UEFA Playoff B" },
-    "description": "Cross-venue odds comparison for UEFA Playoff B vs Japan. World Cup 2026.",
-    "superEvent": {
+      "@context": "https://schema.org",
       "@type": "SportsEvent",
-      "name": "FIFA World Cup 2026",
-      "startDate": "2026-06-11",
-      "endDate": "2026-07-19"
-    }
+      "name": "UEFA Playoff B vs Japan",
+      "startDate": "2026-06-19T22:00:00-04:00",
+      "location": {
+          "@type": "Place",
+          "name": "GEHA Field at Arrowhead Stadium",
+          "address": {
+              "@type": "PostalAddress",
+              "streetAddress": "1 Arrowhead Dr",
+              "addressLocality": "Kansas City",
+              "postalCode": "64129",
+              "addressRegion": "MO",
+              "addressCountry": "US"
+          }
+      },
+      "homeTeam": {
+          "@type": "SportsTeam",
+          "name": "Japan"
+      },
+      "awayTeam": {
+          "@type": "SportsTeam",
+          "name": "UEFA Playoff B"
+      },
+      "description": "Cross-venue odds comparison for UEFA Playoff B vs Japan. World Cup 2026.",
+      "superEvent": {
+          "@type": "SportsEvent",
+          "name": "FIFA World Cup 2026",
+          "startDate": "2026-06-11",
+          "endDate": "2026-07-19"
+      },
+      "eventStatus": "https://schema.org/EventScheduled",
+      "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
+      "organizer": {
+          "@type": "Organization",
+          "name": "FIFA",
+          "url": "https://www.fifa.com"
+      },
+      "url": "https://thedrip.to/edges/f4-vs-jpn-2026-06-19/"
   }
   </script>
 

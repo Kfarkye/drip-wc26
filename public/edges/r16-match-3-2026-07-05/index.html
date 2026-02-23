@@ -22,20 +22,45 @@
   <!-- JSON-LD: SportsEvent -->
   <script type="application/ld+json">
   {
-    "@context": "https://schema.org",
-    "@type": "SportsEvent",
-    "name": "Round of 16 — Match 91",
-    "startDate": "2026-07-05T13:00:00-04:00",
-    "location": { "@type": "Place", "name": "SoFi Stadium", "address": "Inglewood" },
-    "homeTeam": { "@type": "SportsTeam", "name": "W77" },
-    "awayTeam": { "@type": "SportsTeam", "name": "W78" },
-    "description": "Cross-venue odds comparison for Round of 16 — Match 91. World Cup 2026.",
-    "superEvent": {
+      "@context": "https://schema.org",
       "@type": "SportsEvent",
-      "name": "FIFA World Cup 2026",
-      "startDate": "2026-06-11",
-      "endDate": "2026-07-19"
-    }
+      "name": "Round of 16 — Match 91",
+      "startDate": "2026-07-05T13:00:00-04:00",
+      "location": {
+          "@type": "Place",
+          "name": "SoFi Stadium",
+          "address": {
+              "@type": "PostalAddress",
+              "streetAddress": "1001 Stadium Dr",
+              "addressLocality": "Inglewood",
+              "postalCode": "90301",
+              "addressRegion": "CA",
+              "addressCountry": "US"
+          }
+      },
+      "homeTeam": {
+          "@type": "SportsTeam",
+          "name": "W77"
+      },
+      "awayTeam": {
+          "@type": "SportsTeam",
+          "name": "W78"
+      },
+      "description": "Cross-venue odds comparison for Round of 16 — Match 91. World Cup 2026.",
+      "superEvent": {
+          "@type": "SportsEvent",
+          "name": "FIFA World Cup 2026",
+          "startDate": "2026-06-11",
+          "endDate": "2026-07-19"
+      },
+      "eventStatus": "https://schema.org/EventScheduled",
+      "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
+      "organizer": {
+          "@type": "Organization",
+          "name": "FIFA",
+          "url": "https://www.fifa.com"
+      },
+      "url": "https://thedrip.to/edges/r16-match-3-2026-07-05/"
   }
   </script>
 

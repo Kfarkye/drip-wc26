@@ -22,20 +22,45 @@
   <!-- JSON-LD: SportsEvent -->
   <script type="application/ld+json">
   {
-    "@context": "https://schema.org",
-    "@type": "SportsEvent",
-    "name": "South Korea vs Mexico",
-    "startDate": "2026-06-16T18:00:00-06:00",
-    "location": { "@type": "Place", "name": "Estadio BBVA", "address": "Monterrey" },
-    "homeTeam": { "@type": "SportsTeam", "name": "Mexico" },
-    "awayTeam": { "@type": "SportsTeam", "name": "South Korea" },
-    "description": "Cross-venue odds comparison for South Korea vs Mexico. World Cup 2026.",
-    "superEvent": {
+      "@context": "https://schema.org",
       "@type": "SportsEvent",
-      "name": "FIFA World Cup 2026",
-      "startDate": "2026-06-11",
-      "endDate": "2026-07-19"
-    }
+      "name": "South Korea vs Mexico",
+      "startDate": "2026-06-16T18:00:00-06:00",
+      "location": {
+          "@type": "Place",
+          "name": "Estadio BBVA",
+          "address": {
+              "@type": "PostalAddress",
+              "streetAddress": "Av. Pablo Livas 2011",
+              "addressLocality": "Guadalupe",
+              "postalCode": "67170",
+              "addressRegion": "NL",
+              "addressCountry": "MX"
+          }
+      },
+      "homeTeam": {
+          "@type": "SportsTeam",
+          "name": "Mexico"
+      },
+      "awayTeam": {
+          "@type": "SportsTeam",
+          "name": "South Korea"
+      },
+      "description": "Cross-venue odds comparison for South Korea vs Mexico. World Cup 2026.",
+      "superEvent": {
+          "@type": "SportsEvent",
+          "name": "FIFA World Cup 2026",
+          "startDate": "2026-06-11",
+          "endDate": "2026-07-19"
+      },
+      "eventStatus": "https://schema.org/EventScheduled",
+      "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
+      "organizer": {
+          "@type": "Organization",
+          "name": "FIFA",
+          "url": "https://www.fifa.com"
+      },
+      "url": "https://thedrip.to/edges/kor-vs-mex-2026-06-16/"
   }
   </script>
 

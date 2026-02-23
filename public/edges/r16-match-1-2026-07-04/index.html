@@ -22,20 +22,41 @@
   <!-- JSON-LD: SportsEvent -->
   <script type="application/ld+json">
   {
-    "@context": "https://schema.org",
-    "@type": "SportsEvent",
-    "name": "Round of 16 — Match 89",
-    "startDate": "2026-07-04T13:00:00-04:00",
-    "location": { "@type": "Place", "name": "AT&amp;T Stadium", "address": "Arlington" },
-    "homeTeam": { "@type": "SportsTeam", "name": "W73" },
-    "awayTeam": { "@type": "SportsTeam", "name": "W74" },
-    "description": "Cross-venue odds comparison for Round of 16 — Match 89. World Cup 2026.",
-    "superEvent": {
+      "@context": "https://schema.org",
       "@type": "SportsEvent",
-      "name": "FIFA World Cup 2026",
-      "startDate": "2026-06-11",
-      "endDate": "2026-07-19"
-    }
+      "name": "Round of 16 — Match 89",
+      "startDate": "2026-07-04T13:00:00-04:00",
+      "location": {
+          "@type": "Place",
+          "name": "AT&amp;T Stadium",
+          "address": {
+              "@type": "PostalAddress",
+              "addressLocality": "Arlington"
+          }
+      },
+      "homeTeam": {
+          "@type": "SportsTeam",
+          "name": "W73"
+      },
+      "awayTeam": {
+          "@type": "SportsTeam",
+          "name": "W74"
+      },
+      "description": "Cross-venue odds comparison for Round of 16 — Match 89. World Cup 2026.",
+      "superEvent": {
+          "@type": "SportsEvent",
+          "name": "FIFA World Cup 2026",
+          "startDate": "2026-06-11",
+          "endDate": "2026-07-19"
+      },
+      "eventStatus": "https://schema.org/EventScheduled",
+      "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
+      "organizer": {
+          "@type": "Organization",
+          "name": "FIFA",
+          "url": "https://www.fifa.com"
+      },
+      "url": "https://thedrip.to/edges/r16-match-1-2026-07-04/"
   }
   </script>
 

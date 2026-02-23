@@ -22,20 +22,45 @@
   <!-- JSON-LD: SportsEvent -->
   <script type="application/ld+json">
   {
-    "@context": "https://schema.org",
-    "@type": "SportsEvent",
-    "name": "South Africa vs Mexico",
-    "startDate": "2026-06-11T12:00:00-06:00",
-    "location": { "@type": "Place", "name": "Estadio Azteca", "address": "Mexico City" },
-    "homeTeam": { "@type": "SportsTeam", "name": "Mexico" },
-    "awayTeam": { "@type": "SportsTeam", "name": "South Africa" },
-    "description": "Cross-venue odds comparison for South Africa vs Mexico. World Cup 2026.",
-    "superEvent": {
+      "@context": "https://schema.org",
       "@type": "SportsEvent",
-      "name": "FIFA World Cup 2026",
-      "startDate": "2026-06-11",
-      "endDate": "2026-07-19"
-    }
+      "name": "South Africa vs Mexico",
+      "startDate": "2026-06-11T12:00:00-06:00",
+      "location": {
+          "@type": "Place",
+          "name": "Estadio Azteca",
+          "address": {
+              "@type": "PostalAddress",
+              "streetAddress": "Calz. de Tlalpan 3465",
+              "addressLocality": "Mexico City",
+              "postalCode": "04530",
+              "addressRegion": "CDMX",
+              "addressCountry": "MX"
+          }
+      },
+      "homeTeam": {
+          "@type": "SportsTeam",
+          "name": "Mexico"
+      },
+      "awayTeam": {
+          "@type": "SportsTeam",
+          "name": "South Africa"
+      },
+      "description": "Cross-venue odds comparison for South Africa vs Mexico. World Cup 2026.",
+      "superEvent": {
+          "@type": "SportsEvent",
+          "name": "FIFA World Cup 2026",
+          "startDate": "2026-06-11",
+          "endDate": "2026-07-19"
+      },
+      "eventStatus": "https://schema.org/EventScheduled",
+      "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
+      "organizer": {
+          "@type": "Organization",
+          "name": "FIFA",
+          "url": "https://www.fifa.com"
+      },
+      "url": "https://thedrip.to/edges/rsa-vs-mex-2026-06-11/"
   }
   </script>
 

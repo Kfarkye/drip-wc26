@@ -22,20 +22,45 @@
   <!-- JSON-LD: SportsEvent -->
   <script type="application/ld+json">
   {
-    "@context": "https://schema.org",
-    "@type": "SportsEvent",
-    "name": "Ecuador vs Ivory Coast",
-    "startDate": "2026-06-14T19:00:00-04:00",
-    "location": { "@type": "Place", "name": "Lincoln Financial Field", "address": "Philadelphia" },
-    "homeTeam": { "@type": "SportsTeam", "name": "Ivory Coast" },
-    "awayTeam": { "@type": "SportsTeam", "name": "Ecuador" },
-    "description": "Cross-venue odds comparison for Ecuador vs Ivory Coast. World Cup 2026.",
-    "superEvent": {
+      "@context": "https://schema.org",
       "@type": "SportsEvent",
-      "name": "FIFA World Cup 2026",
-      "startDate": "2026-06-11",
-      "endDate": "2026-07-19"
-    }
+      "name": "Ecuador vs Ivory Coast",
+      "startDate": "2026-06-14T19:00:00-04:00",
+      "location": {
+          "@type": "Place",
+          "name": "Lincoln Financial Field",
+          "address": {
+              "@type": "PostalAddress",
+              "streetAddress": "1 Lincoln Financial Field Way",
+              "addressLocality": "Philadelphia",
+              "postalCode": "19148",
+              "addressRegion": "PA",
+              "addressCountry": "US"
+          }
+      },
+      "homeTeam": {
+          "@type": "SportsTeam",
+          "name": "Ivory Coast"
+      },
+      "awayTeam": {
+          "@type": "SportsTeam",
+          "name": "Ecuador"
+      },
+      "description": "Cross-venue odds comparison for Ecuador vs Ivory Coast. World Cup 2026.",
+      "superEvent": {
+          "@type": "SportsEvent",
+          "name": "FIFA World Cup 2026",
+          "startDate": "2026-06-11",
+          "endDate": "2026-07-19"
+      },
+      "eventStatus": "https://schema.org/EventScheduled",
+      "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
+      "organizer": {
+          "@type": "Organization",
+          "name": "FIFA",
+          "url": "https://www.fifa.com"
+      },
+      "url": "https://thedrip.to/edges/ecu-vs-civ-2026-06-14/"
   }
   </script>
 

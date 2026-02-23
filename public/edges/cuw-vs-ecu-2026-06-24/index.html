@@ -22,20 +22,45 @@
   <!-- JSON-LD: SportsEvent -->
   <script type="application/ld+json">
   {
-    "@context": "https://schema.org",
-    "@type": "SportsEvent",
-    "name": "Curacao vs Ecuador",
-    "startDate": "2026-06-24T18:00:00-04:00",
-    "location": { "@type": "Place", "name": "Lincoln Financial Field", "address": "Philadelphia" },
-    "homeTeam": { "@type": "SportsTeam", "name": "Ecuador" },
-    "awayTeam": { "@type": "SportsTeam", "name": "Curacao" },
-    "description": "Cross-venue odds comparison for Curacao vs Ecuador. World Cup 2026.",
-    "superEvent": {
+      "@context": "https://schema.org",
       "@type": "SportsEvent",
-      "name": "FIFA World Cup 2026",
-      "startDate": "2026-06-11",
-      "endDate": "2026-07-19"
-    }
+      "name": "Curacao vs Ecuador",
+      "startDate": "2026-06-24T18:00:00-04:00",
+      "location": {
+          "@type": "Place",
+          "name": "Lincoln Financial Field",
+          "address": {
+              "@type": "PostalAddress",
+              "streetAddress": "1 Lincoln Financial Field Way",
+              "addressLocality": "Philadelphia",
+              "postalCode": "19148",
+              "addressRegion": "PA",
+              "addressCountry": "US"
+          }
+      },
+      "homeTeam": {
+          "@type": "SportsTeam",
+          "name": "Ecuador"
+      },
+      "awayTeam": {
+          "@type": "SportsTeam",
+          "name": "Curacao"
+      },
+      "description": "Cross-venue odds comparison for Curacao vs Ecuador. World Cup 2026.",
+      "superEvent": {
+          "@type": "SportsEvent",
+          "name": "FIFA World Cup 2026",
+          "startDate": "2026-06-11",
+          "endDate": "2026-07-19"
+      },
+      "eventStatus": "https://schema.org/EventScheduled",
+      "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
+      "organizer": {
+          "@type": "Organization",
+          "name": "FIFA",
+          "url": "https://www.fifa.com"
+      },
+      "url": "https://thedrip.to/edges/cuw-vs-ecu-2026-06-24/"
   }
   </script>
 

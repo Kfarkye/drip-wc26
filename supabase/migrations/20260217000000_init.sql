@@ -139,29 +139,31 @@ CREATE INDEX idx_teams_group ON teams(group_letter);
 -- VENUES
 INSERT INTO venues (name, city, state, country, capacity, latitude, longitude, timezone) VALUES
   ('SoFi Stadium', 'Inglewood', 'CA', 'US', 70240, 33.9534, -118.3390, 'America/Los_Angeles'),
-  ('Q2 Stadium', 'Austin', 'TX', 'US', 20738, 30.3879, -97.7194, 'America/Chicago'),
-  ('MetLife Stadium', 'East Rutherford', 'NJ', 'US', 82500, 40.8128, -74.0742, 'America/New_York');
+  ('Mercedes-Benz Stadium', 'Atlanta', 'GA', 'US', 71000, 33.7553, -84.4006, 'America/New_York'),
+  ('Lincoln Financial Field', 'Philadelphia', 'PA', 'US', 69176, 39.9008, -75.1675, 'America/New_York'),
+  ('Lumen Field', 'Seattle', 'WA', 'US', 68740, 47.5952, -122.3316, 'America/Los_Angeles');
 
 -- TEAMS
 INSERT INTO teams (name, code, group_letter, fifa_ranking, confederation, flag_emoji) VALUES
   ('United States', 'USA', 'D', 14, 'CONCACAF', '🇺🇸'),
-  ('Chile', 'CHI', 'D', 36, 'CONMEBOL', '🇨🇱'),
-  ('Ecuador', 'ECU', 'D', 30, 'CONMEBOL', '🇪🇨'),
-  ('Peru', 'PER', 'D', 33, 'CONMEBOL', '🇵🇪');
+  ('Paraguay', 'PAR', 'D', 50, 'CONMEBOL', '🇵🇾'),
+  ('Australia', 'AUS', 'D', 24, 'AFC', '🇦🇺'),
+  ('UEFA Playoff C', 'D4', 'D', NULL, 'UEFA', '🏳️');
 
 -- MATCHES
 INSERT INTO matches (group_letter, match_number, home_team_code, away_team_code, venue_id, kickoff, stage) VALUES
-  ('D', 1, 'USA', 'CHI', (SELECT id FROM venues WHERE name = 'SoFi Stadium'), '2026-06-13T18:00:00-07:00', 'group'),
-  ('D', 2, 'ECU', 'PER', (SELECT id FROM venues WHERE name = 'Q2 Stadium'), '2026-06-14T15:00:00-05:00', 'group'),
-  ('D', 3, 'USA', 'PER', (SELECT id FROM venues WHERE name = 'MetLife Stadium'), '2026-06-18T18:00:00-04:00', 'group'),
-  ('D', 4, 'CHI', 'ECU', (SELECT id FROM venues WHERE name = 'SoFi Stadium'), '2026-06-18T15:00:00-07:00', 'group'),
-  ('D', 5, 'USA', 'ECU', (SELECT id FROM venues WHERE name = 'MetLife Stadium'), '2026-06-22T18:00:00-04:00', 'group'),
-  ('D', 6, 'CHI', 'PER', (SELECT id FROM venues WHERE name = 'Q2 Stadium'), '2026-06-22T15:00:00-05:00', 'group');
+  ('D', 1, 'USA', 'PAR', (SELECT id FROM venues WHERE name = 'SoFi Stadium'), '2026-06-12T21:00:00-04:00', 'group'),
+  ('D', 2, 'AUS', 'D4', (SELECT id FROM venues WHERE name = 'Mercedes-Benz Stadium'), '2026-06-13T12:00:00-04:00', 'group'),
+  ('D', 3, 'USA', 'AUS', (SELECT id FROM venues WHERE name = 'SoFi Stadium'), '2026-06-17T21:00:00-04:00', 'group'),
+  ('D', 4, 'PAR', 'D4', (SELECT id FROM venues WHERE name = 'Mercedes-Benz Stadium'), '2026-06-17T18:00:00-04:00', 'group'),
+  ('D', 5, 'USA', 'D4', (SELECT id FROM venues WHERE name = 'SoFi Stadium'), '2026-06-22T21:00:00-04:00', 'group'),
+  ('D', 6, 'PAR', 'AUS', (SELECT id FROM venues WHERE name = 'Lincoln Financial Field'), '2026-06-22T21:00:00-04:00', 'group');
 
 -- SAMPLE ODDS
 INSERT INTO odds (match_id, market_type, team_code, source, american_odds, implied_probability) VALUES
-  ((SELECT id FROM matches WHERE home_team_code = 'USA' AND away_team_code = 'CHI' AND match_number = 1), 'futures_group_winner', 'USA', 'draftkings', 150, 0.4000);
+  ((SELECT id FROM matches WHERE home_team_code = 'USA' AND away_team_code = 'PAR' AND match_number = 1), 'futures_group_winner', 'USA', 'draftkings', 125, 0.4444);
 
 -- SAMPLE PREDICTION MARKET
 INSERT INTO prediction_prices (match_id, market_type, team_code, source, price_cents, implied_probability) VALUES
-  ((SELECT id FROM matches WHERE home_team_code = 'USA' AND away_team_code = 'CHI' AND match_number = 1), 'group_winner', 'USA', 'kalshi', 45, 0.4500);
+  ((SELECT id FROM matches WHERE home_team_code = 'USA' AND away_team_code = 'PAR' AND match_number = 1), 'group_winner', 'USA', 'kalshi', 48, 0.4800);
+

@@ -22,20 +22,45 @@
   <!-- JSON-LD: SportsEvent -->
   <script type="application/ld+json">
   {
-    "@context": "https://schema.org",
-    "@type": "SportsEvent",
-    "name": "Jordan vs Argentina",
-    "startDate": "2026-06-26T21:00:00-04:00",
-    "location": { "@type": "Place", "name": "NRG Stadium", "address": "Houston" },
-    "homeTeam": { "@type": "SportsTeam", "name": "Argentina" },
-    "awayTeam": { "@type": "SportsTeam", "name": "Jordan" },
-    "description": "Cross-venue odds comparison for Jordan vs Argentina. World Cup 2026.",
-    "superEvent": {
+      "@context": "https://schema.org",
       "@type": "SportsEvent",
-      "name": "FIFA World Cup 2026",
-      "startDate": "2026-06-11",
-      "endDate": "2026-07-19"
-    }
+      "name": "Jordan vs Argentina",
+      "startDate": "2026-06-26T21:00:00-04:00",
+      "location": {
+          "@type": "Place",
+          "name": "NRG Stadium",
+          "address": {
+              "@type": "PostalAddress",
+              "streetAddress": "1 NRG Park",
+              "addressLocality": "Houston",
+              "postalCode": "77054",
+              "addressRegion": "TX",
+              "addressCountry": "US"
+          }
+      },
+      "homeTeam": {
+          "@type": "SportsTeam",
+          "name": "Argentina"
+      },
+      "awayTeam": {
+          "@type": "SportsTeam",
+          "name": "Jordan"
+      },
+      "description": "Cross-venue odds comparison for Jordan vs Argentina. World Cup 2026.",
+      "superEvent": {
+          "@type": "SportsEvent",
+          "name": "FIFA World Cup 2026",
+          "startDate": "2026-06-11",
+          "endDate": "2026-07-19"
+      },
+      "eventStatus": "https://schema.org/EventScheduled",
+      "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
+      "organizer": {
+          "@type": "Organization",
+          "name": "FIFA",
+          "url": "https://www.fifa.com"
+      },
+      "url": "https://thedrip.to/edges/jor-vs-arg-2026-06-26/"
   }
   </script>
 

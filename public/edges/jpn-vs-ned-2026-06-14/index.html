@@ -22,20 +22,41 @@
   <!-- JSON-LD: SportsEvent -->
   <script type="application/ld+json">
   {
-    "@context": "https://schema.org",
-    "@type": "SportsEvent",
-    "name": "Japan vs Netherlands",
-    "startDate": "2026-06-14T16:00:00-04:00",
-    "location": { "@type": "Place", "name": "AT&amp;T Stadium", "address": "Arlington" },
-    "homeTeam": { "@type": "SportsTeam", "name": "Netherlands" },
-    "awayTeam": { "@type": "SportsTeam", "name": "Japan" },
-    "description": "Cross-venue odds comparison for Japan vs Netherlands. World Cup 2026.",
-    "superEvent": {
+      "@context": "https://schema.org",
       "@type": "SportsEvent",
-      "name": "FIFA World Cup 2026",
-      "startDate": "2026-06-11",
-      "endDate": "2026-07-19"
-    }
+      "name": "Japan vs Netherlands",
+      "startDate": "2026-06-14T16:00:00-04:00",
+      "location": {
+          "@type": "Place",
+          "name": "AT&amp;T Stadium",
+          "address": {
+              "@type": "PostalAddress",
+              "addressLocality": "Arlington"
+          }
+      },
+      "homeTeam": {
+          "@type": "SportsTeam",
+          "name": "Netherlands"
+      },
+      "awayTeam": {
+          "@type": "SportsTeam",
+          "name": "Japan"
+      },
+      "description": "Cross-venue odds comparison for Japan vs Netherlands. World Cup 2026.",
+      "superEvent": {
+          "@type": "SportsEvent",
+          "name": "FIFA World Cup 2026",
+          "startDate": "2026-06-11",
+          "endDate": "2026-07-19"
+      },
+      "eventStatus": "https://schema.org/EventScheduled",
+      "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
+      "organizer": {
+          "@type": "Organization",
+          "name": "FIFA",
+          "url": "https://www.fifa.com"
+      },
+      "url": "https://thedrip.to/edges/jpn-vs-ned-2026-06-14/"
   }
   </script>
 

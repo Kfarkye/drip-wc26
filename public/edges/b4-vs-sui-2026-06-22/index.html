@@ -22,20 +22,45 @@
   <!-- JSON-LD: SportsEvent -->
   <script type="application/ld+json">
   {
-    "@context": "https://schema.org",
-    "@type": "SportsEvent",
-    "name": "UEFA Playoff A vs Switzerland",
-    "startDate": "2026-06-22T18:00:00-07:00",
-    "location": { "@type": "Place", "name": "Levi's Stadium", "address": "Santa Clara" },
-    "homeTeam": { "@type": "SportsTeam", "name": "Switzerland" },
-    "awayTeam": { "@type": "SportsTeam", "name": "UEFA Playoff A" },
-    "description": "Cross-venue odds comparison for UEFA Playoff A vs Switzerland. World Cup 2026.",
-    "superEvent": {
+      "@context": "https://schema.org",
       "@type": "SportsEvent",
-      "name": "FIFA World Cup 2026",
-      "startDate": "2026-06-11",
-      "endDate": "2026-07-19"
-    }
+      "name": "UEFA Playoff A vs Switzerland",
+      "startDate": "2026-06-22T18:00:00-07:00",
+      "location": {
+          "@type": "Place",
+          "name": "Levi's Stadium",
+          "address": {
+              "@type": "PostalAddress",
+              "streetAddress": "4900 Marie P DeBartolo Way",
+              "addressLocality": "Santa Clara",
+              "postalCode": "95054",
+              "addressRegion": "CA",
+              "addressCountry": "US"
+          }
+      },
+      "homeTeam": {
+          "@type": "SportsTeam",
+          "name": "Switzerland"
+      },
+      "awayTeam": {
+          "@type": "SportsTeam",
+          "name": "UEFA Playoff A"
+      },
+      "description": "Cross-venue odds comparison for UEFA Playoff A vs Switzerland. World Cup 2026.",
+      "superEvent": {
+          "@type": "SportsEvent",
+          "name": "FIFA World Cup 2026",
+          "startDate": "2026-06-11",
+          "endDate": "2026-07-19"
+      },
+      "eventStatus": "https://schema.org/EventScheduled",
+      "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
+      "organizer": {
+          "@type": "Organization",
+          "name": "FIFA",
+          "url": "https://www.fifa.com"
+      },
+      "url": "https://thedrip.to/edges/b4-vs-sui-2026-06-22/"
   }
   </script>
 
