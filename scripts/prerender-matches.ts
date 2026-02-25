@@ -272,9 +272,9 @@ function renderMatchContent(match: MatchSeed): string {
     let matchProse = '';
     if (bothReal) {
         matchProse = `
-    <p><strong>${escapeHtml(match.awayTeam)}</strong> and <strong>${escapeHtml(match.homeTeam)}</strong> meet in World Cup 2026 Group ${match.group} action at ${escapeHtml(match.venue)} in ${escapeHtml(match.venueCity)}. The Drip tracks moneyline, spread, and total pricing across regulated sportsbooks and prediction markets to identify cross-ecosystem pricing gaps.</p>
+    <p><strong>${escapeHtml(match.awayTeam)}</strong> and <strong>${escapeHtml(match.homeTeam)}</strong> meet in World Cup 2026 Group ${match.group} action at ${escapeHtml(match.venue)} in ${escapeHtml(match.venueCity)}. The Drip tracks moneyline, spread, and total pricing across regulated sportsbooks and prediction markets to find where the odds disagree.</p>
     ${groupContext ? `<p>${escapeHtml(groupContext)}</p>` : ''}
-    <p>Sportsbooks set lines based on liability management and handle distribution. Prediction markets like Kalshi and Polymarket set prices through open order books driven by trader conviction. When these two systems price the same outcome differently, the gap represents a quantifiable edge.</p>`;
+    <p>Sportsbooks like DraftKings and FanDuel set lines based on betting volume. Prediction markets like Kalshi and Polymarket set prices through open order books driven by trader conviction. When these two systems price the same outcome differently, the gap is worth watching.</p>`;
     } else if (isGroup) {
         matchProse = `
     <p>This Group ${match.group} match features ${escapeHtml(match.awayTeam)} against ${escapeHtml(match.homeTeam)} at ${escapeHtml(match.venue)}. Odds will populate once sportsbooks and prediction markets open lines for this fixture.</p>
@@ -346,7 +346,7 @@ function renderHowItWorks(): string {
   <div class="how">
     <div class="label"><span>How It Works</span></div>
     <div class="prose">
-      <p>Sportsbooks set odds based on liability and handle. Prediction markets like Kalshi and Polymarket set prices through open order books. When these two ecosystems price the same outcome differently, the gap is a measurable signal. The Drip surfaces those gaps across every World Cup 2026 match.</p>
+      <p>Sportsbooks like DraftKings and FanDuel set odds based on how much money comes in on each side. Prediction markets like Kalshi and Polymarket set prices through open order books where traders buy and sell contracts. When these two systems price the same World Cup outcome differently, the gap tells you something. The Drip tracks those gaps across every match.</p>
     </div>
   </div>`;
 }
