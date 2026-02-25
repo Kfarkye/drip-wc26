@@ -11,19 +11,19 @@ export const GroupPage: React.FC = () => {
     const faqs = [
         {
             question: "Who will win World Cup 2026 Group D?",
-            answer: "The United States is favored to win Group D at +150 odds (40% implied probability) on major sportsbooks. Prediction markets price USA at 45%, suggesting the hosts have a slightly higher chance than sportsbooks reflect. Chile, Ecuador, and Peru are viable challengers with combined implied probability of approximately 55%."
+            answer: "The United States is favored to win Group D at +125 odds (44.4% implied probability) on major sportsbooks. Prediction markets price USA at 45%, suggesting alignment between books and markets. Paraguay, Australia, and the UEFA Playoff C winner round out the group."
         },
         {
-            question: "What are the odds for USA vs Chile at the 2026 World Cup?",
-            answer: "USA vs Chile is scheduled for June 13, 2026 at SoFi Stadium. DraftKings lists USA at approximately -160, Chile at +380, and the draw at +280. Prediction markets suggest USA has a 58% chance of winning the match."
+            question: "What are the odds for USA vs Paraguay at the 2026 World Cup?",
+            answer: "USA vs Paraguay is scheduled for June 12, 2026 at SoFi Stadium in Inglewood, California. DraftKings lists USA at approximately -160, Paraguay at +380, and the draw at +280. Prediction markets suggest USA has a 58% chance of winning the opening match."
         },
         {
             question: "Where is World Cup 2026 Group D being played?",
-            answer: "Group D matches are hosted across three American venues: SoFi Stadium in Inglewood, California; Q2 Stadium in Austin, Texas; and MetLife Stadium in East Rutherford, New Jersey. The USA plays their matches at SoFi Stadium and MetLife Stadium."
+            answer: "Group D matches are hosted across four American venues: SoFi Stadium in Inglewood, California; Lumen Field in Seattle, Washington; Mercedes-Benz Stadium in Atlanta, Georgia; and Lincoln Financial Field in Philadelphia, Pennsylvania."
         },
         {
-            question: "What is the edge in sports betting?",
-            answer: "Edge is the mathematical gap between what a sportsbook implies a team's probability is (derived from their odds) and what an independent pricing source like a prediction market implies. A positive edge suggests the sportsbook line offers more value than the market-derived probability indicates."
+            question: "What is a cross-ecosystem edge?",
+            answer: "A cross-ecosystem edge is the mathematical gap between what a sportsbook implies a team's probability is and what an independent pricing source like a prediction market implies. The gap represents a measurable discrepancy between two pricing mechanisms for the same outcome."
         }
     ];
 
@@ -35,69 +35,88 @@ export const GroupPage: React.FC = () => {
 
             <GroupHeader groupLetter={groupD.letter} teams={groupD.teams} />
 
+            {/* Overview */}
             <section className="mb-20">
-                <h2 className="text-2xl font-sans font-[300] mb-8 text-[var(--ivory)] flex items-center gap-4">
-                    <span className="h-[1px] w-8 bg-[var(--emerald)]/40" />
-                    Group D Overview
-                </h2>
-                <p className="text-lg text-[var(--silver)] leading-relaxed mb-12 max-w-4xl italic font-serif">
-                    "The United States enters World Cup 2026 Group D as favorites at +150 on DraftKings, implying 40% win probability. Prediction markets on Kalshi price USA group winners at 45 cents, implying 45%. The 5.0% gap suggests sportsbooks are undervaluing the host nation's advantage at SoFi Stadium and MetLife Stadium."
+                <div className="flex items-center gap-3 mb-6">
+                    <div className="h-[1px] w-8 bg-[var(--emerald)]/30" />
+                    <span className="text-[10px] tracking-[0.2em] text-[var(--emerald)] uppercase font-[500] font-sans">
+                        Group Winner Markets
+                    </span>
+                </div>
+
+                <p className="text-[15px] text-[var(--mist)] font-sans leading-relaxed mb-10 max-w-2xl">
+                    The United States enters as Group D favorites at +125 on DraftKings, implying 44.4% win probability.
+                    Kalshi prices USA group winners at 45¢, implying 45%. The narrow gap reflects tight consensus between
+                    sportsbook and prediction market pricing on the host nation.
                 </p>
 
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 stagger">
                     <EdgeCard
                         marketName="USA to Win Group D"
                         sportsbookName="DraftKings"
-                        sportsbookOdds="+150"
+                        sportsbookOdds="+125"
                         sportsbookLink="https://www.draftkings.com"
                         predictionName="Kalshi"
                         predictionPrice="45¢"
                         predictionLink="https://www.kalshi.com"
-                        edgePercentage={5.2}
-                        confidence="high"
+                        edgePercentage={0.6}
+                        confidence="low"
                         volume={124000}
                         link="/edges/usa-to-win-group-d"
                     />
                     <EdgeCard
-                        marketName="Chile to Win Group D"
+                        marketName="Paraguay to Win Group D"
                         sportsbookName="DraftKings"
-                        sportsbookOdds="+350"
+                        sportsbookOdds="+800"
                         sportsbookLink="https://www.draftkings.com"
                         predictionName="Kalshi"
-                        predictionPrice="22¢"
+                        predictionPrice="10¢"
                         predictionLink="https://www.kalshi.com"
-                        edgePercentage={3.2}
-                        confidence="medium"
-                        volume={48000}
-                        link="/edges/chile-to-win-group-d"
+                        edgePercentage={1.1}
+                        confidence="low"
+                        volume={12000}
+                        link="/edges/paraguay-to-win-group-d"
                     />
                     <EdgeCard
-                        marketName="Ecuador to Win Group D"
+                        marketName="Australia to Win Group D"
                         sportsbookName="DraftKings"
-                        sportsbookOdds="+280"
+                        sportsbookOdds="+600"
                         sportsbookLink="https://www.draftkings.com"
                         predictionName="Kalshi"
-                        predictionPrice="25¢"
+                        predictionPrice="14¢"
                         predictionLink="https://www.kalshi.com"
                         edgePercentage={2.4}
                         confidence="low"
                         volume={8500}
-                        link="/edges/ecuador-to-win-group-d"
+                        link="/edges/australia-to-win-group-d"
                     />
                 </div>
             </section>
 
+            {/* USA Opener */}
             <section className="mb-20">
-                <h2 className="text-2xl font-sans font-[300] mb-8 text-[var(--ivory)] flex items-center gap-4">
-                    <span className="h-[1px] w-8 bg-[var(--emerald)]/40" />
-                    USA vs Chile
+                <div className="flex items-center gap-3 mb-6">
+                    <div className="h-[1px] w-8 bg-white/10" />
+                    <span className="text-[10px] tracking-[0.2em] text-[var(--silver)] uppercase font-[500] font-sans">
+                        Opening Match
+                    </span>
+                </div>
+
+                <h2 className="text-2xl font-sans font-[200] text-[var(--ivory)] mb-3">
+                    USA vs Paraguay
                 </h2>
-                <p className="text-lg text-[var(--silver)] leading-relaxed mb-12 max-w-4xl italic font-serif">
-                    "USA vs Chile kicks off June 13 at SoFi Stadium in Inglewood, California. DraftKings lists USA at -160 (61.5% implied). Kalshi prices USA to win this match at 58 cents (58% implied). The 3.5% discrepancy indicates marginal sportsbook overconfidence in the hosts for the opening fixture."
+                <p className="text-[13px] text-[var(--silver)] font-sans mb-1">
+                    Friday, June 12 · 9:00 PM ET · SoFi Stadium, Inglewood
                 </p>
-                <div className="max-w-md">
+                <p className="text-[15px] text-[var(--mist)] font-sans leading-relaxed mb-8 max-w-2xl">
+                    DraftKings lists USA at -160 (61.5% implied). Kalshi prices USA to win this match
+                    at 58¢ (58% implied). The 3.5% discrepancy suggests marginal sportsbook overconfidence
+                    in the hosts for the opening fixture.
+                </p>
+
+                <div className="max-w-sm">
                     <EdgeCard
-                        marketName="USA to Win Match 1"
+                        marketName="USA to Beat Paraguay"
                         sportsbookName="DraftKings"
                         sportsbookOdds="-160"
                         sportsbookLink="https://www.draftkings.com"
@@ -107,27 +126,39 @@ export const GroupPage: React.FC = () => {
                         edgePercentage={3.5}
                         confidence="medium"
                         volume={32000}
-                        link="/edges/usa-to-win-match-1"
+                        link="/edges/par-vs-usa-2026-06-12"
                     />
                 </div>
             </section>
 
+            {/* Edge Analysis */}
             <section className="mb-20">
-                <h2 className="text-2xl font-sans font-[300] mb-8 text-[var(--ivory)] flex items-center gap-4">
-                    <span className="h-[1px] w-8 bg-[var(--emerald)]/40" />
-                    Edge Analysis
-                </h2>
-                <p className="text-lg text-[var(--silver)] leading-relaxed max-w-4xl italic font-serif">
-                    "Group D contains the largest host-nation pricing gap in the 2026 World Cup. Across all 12 groups, the USA group winner market shows a 5.2% edge between sportsbook consensus and prediction market pricing. This gap is driven by emotional home-crowd betting inflating sportsbook liability, while prediction markets reflect sharper probability assessment." [1]
+                <div className="flex items-center gap-3 mb-6">
+                    <div className="h-[1px] w-8 bg-white/10" />
+                    <span className="text-[10px] tracking-[0.2em] text-[var(--silver)] uppercase font-[500] font-sans">
+                        Edge Analysis
+                    </span>
+                </div>
+
+                <p className="text-[15px] text-[var(--mist)] font-sans leading-relaxed max-w-2xl">
+                    Group D contains a notable host-nation pricing dynamic. The USA group winner market
+                    shows narrow alignment between sportsbook consensus and prediction market pricing,
+                    suggesting the home-crowd betting effect is already priced in. The larger edges in this
+                    group sit on match-level moneylines rather than futures, where sportsbook liability
+                    management creates wider gaps against prediction market order books.
                 </p>
             </section>
 
+            {/* Match Schedule */}
             <section className="mb-20">
-                <h2 className="text-2xl font-sans font-[300] mb-8 text-[var(--ivory)] flex items-center gap-4">
-                    <span className="h-[1px] w-8 bg-[var(--emerald)]/40" />
-                    Match Schedule
-                </h2>
-                <div className="bg-[var(--card-bg)] border border-[var(--card-border)] rounded-[14px] p-6">
+                <div className="flex items-center gap-3 mb-6">
+                    <div className="h-[1px] w-8 bg-white/10" />
+                    <span className="text-[10px] tracking-[0.2em] text-[var(--silver)] uppercase font-[500] font-sans">
+                        Match Schedule
+                    </span>
+                </div>
+
+                <div className="rounded-[var(--radius-lg)] bg-[var(--card-bg)] border border-[var(--card-border)] p-4">
                     {groupD.matches.map((match, i) => (
                         <MatchRow
                             key={i}
@@ -140,13 +171,24 @@ export const GroupPage: React.FC = () => {
                 </div>
             </section>
 
-            <section className="mb-20 border-t border-[var(--card-border)] pt-16">
-                <h2 className="text-xl font-sans font-[300] mb-12 text-[var(--silver)] uppercase tracking-[0.2em]">Frequently Asked Questions</h2>
-                <div className="grid md:grid-cols-2 gap-x-12 gap-y-16">
+            {/* FAQ */}
+            <section className="mb-12 border-t border-[var(--card-border)] pt-16">
+                <div className="flex items-center gap-3 mb-10">
+                    <div className="h-[1px] w-8 bg-white/10" />
+                    <span className="text-[10px] tracking-[0.2em] text-[var(--silver)] uppercase font-[500] font-sans">
+                        FAQ
+                    </span>
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-x-12 gap-y-10">
                     {faqs.map((faq, i) => (
-                        <div key={i} className="group">
-                            <h3 className="text-[var(--ivory)] font-[500] mb-4 font-sans group-hover:text-[var(--emerald)] transition-colors">{faq.question}</h3>
-                            <p className="text-[var(--silver)] text-sm leading-relaxed font-sans">{faq.answer}</p>
+                        <div key={i}>
+                            <h3 className="text-[14px] text-[var(--ivory)] font-[500] mb-3 font-sans leading-snug">
+                                {faq.question}
+                            </h3>
+                            <p className="text-[13px] text-[var(--mist)] leading-relaxed font-sans">
+                                {faq.answer}
+                            </p>
                         </div>
                     ))}
                 </div>

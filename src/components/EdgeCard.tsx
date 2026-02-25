@@ -15,6 +15,12 @@ interface EdgeCardProps {
     link?: string;
 }
 
+const confidenceColor: Record<string, string> = {
+    high: 'text-[var(--emerald)] border-[var(--emerald)]/20 bg-[var(--emerald)]/[0.06]',
+    medium: 'text-[var(--bone)] border-[var(--bone)]/15 bg-white/[0.03]',
+    low: 'text-[var(--silver)] border-white/[0.06] bg-white/[0.02]',
+};
+
 export const EdgeCard: React.FC<EdgeCardProps> = ({
     marketName,
     sportsbookName,
@@ -24,70 +30,87 @@ export const EdgeCard: React.FC<EdgeCardProps> = ({
     predictionPrice,
     predictionLink,
     edgePercentage,
-    confidence,
+    confidence = 'medium',
     volume,
     link,
 }) => {
     const card = (
-        <div className="relative overflow-hidden rounded-[14px] bg-[var(--card-bg)] border border-[var(--card-border)] p-8 animate-breathe-in">
-            <div className="flex justify-between items-start mb-6">
-                <div className="text-[18px] font-[300] tracking-tight font-sans text-ivory/80">
+        <div className="relative overflow-hidden rounded-[var(--radius-lg)] bg-[var(--card-bg)] border border-[var(--card-border)] p-6 transition-all duration-300 hover:border-white/[0.08] hover:shadow-[0_8px_32px_-8px_rgba(0,0,0,0.5)] group">
+            {/* Header */}
+            <div className="flex justify-between items-start mb-5">
+                <div className="text-[15px] font-[400] tracking-tight font-sans text-[var(--ivory)]">
                     {marketName}
                 </div>
                 {confidence && (
-                    <div className="px-2 py-0.5 rounded-full text-[8px] font-[500] tracking-widest uppercase border border-white/[0.06] text-[var(--silver)] bg-white/[0.03]">
+                    <span className={`px-2 py-0.5 rounded text-[9px] font-[500] tracking-[0.12em] uppercase border ${confidenceColor[confidence]}`}>
                         {confidence}
-                    </div>
+                    </span>
                 )}
             </div>
 
-            <div className="space-y-4 mb-8">
-                <div className="flex items-center justify-between py-2 border-b border-white/[0.05]">
-                    <div className="font-sans text-[var(--mist)]">
-                        {sportsbookLink ? (
-                            <a href={sportsbookLink} target="_blank" rel="noopener noreferrer" className="hover:text-[var(--ivory)] transition-colors underline decoration-white/[0.1] underline-offset-2">
-                                {sportsbookName}
-                            </a>
-                        ) : sportsbookName}
-                    </div>
-                    <div className="flex items-center gap-3">
-                        <span className="px-1.5 py-0.5 rounded text-[9px] font-[400] tracking-widest uppercase border border-white/[0.06] text-[var(--silver)] bg-white/[0.02]">
-                            YES
+            {/* Odds comparison */}
+            <div className="space-y-0 mb-6">
+                {/* Sportsbook row */}
+                <div className="flex items-center justify-between py-3 border-b border-white/[0.04]">
+                    <div className="flex items-center gap-2">
+                        <span className="w-[3px] h-3 rounded-full bg-[var(--emerald)]/40" />
+                        <span className="text-[13px] font-sans text-[var(--mist)]">
+                            {sportsbookLink ? (
+                                <a
+                                    href={sportsbookLink}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="hover:text-[var(--ivory)] transition-colors"
+                                    onClick={(e) => e.stopPropagation()}
+                                >
+                                    {sportsbookName}
+                                </a>
+                            ) : sportsbookName}
                         </span>
-                        <span className="font-mono text-ivory">{sportsbookOdds}</span>
                     </div>
+                    <span className="font-mono text-[14px] text-[var(--ivory)] tracking-tight">{sportsbookOdds}</span>
                 </div>
 
-                <div className="flex items-center justify-between py-2">
-                    <div className="font-sans text-[var(--mist)]">
-                        {predictionLink ? (
-                            <a href={predictionLink} target="_blank" rel="noopener noreferrer" className="hover:text-[var(--ivory)] transition-colors underline decoration-white/[0.1] underline-offset-2">
-                                {predictionName}
-                            </a>
-                        ) : predictionName}
-                    </div>
-                    <div className="flex items-center gap-3">
-                        <span className="px-1.5 py-0.5 rounded text-[9px] font-[400] tracking-widest uppercase border border-white/[0.06] text-[var(--silver)] bg-white/[0.02]">
-                            NO
+                {/* Prediction market row */}
+                <div className="flex items-center justify-between py-3">
+                    <div className="flex items-center gap-2">
+                        <span className="w-[3px] h-3 rounded-full bg-white/10" />
+                        <span className="text-[13px] font-sans text-[var(--mist)]">
+                            {predictionLink ? (
+                                <a
+                                    href={predictionLink}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="hover:text-[var(--ivory)] transition-colors"
+                                    onClick={(e) => e.stopPropagation()}
+                                >
+                                    {predictionName}
+                                </a>
+                            ) : predictionName}
                         </span>
-                        <span className="font-mono text-ivory">{predictionPrice}</span>
                     </div>
+                    <span className="font-mono text-[14px] text-[var(--ivory)] tracking-tight">{predictionPrice}</span>
                 </div>
             </div>
 
-            <div className="flex flex-col items-center justify-center py-4">
-                <div className="flex items-baseline gap-1">
-                    <span className="font-mono font-[400] leading-none text-[clamp(44px,9vw,58px)] text-[var(--emerald)] animate-blur-reveal">
+            {/* Edge value — the hero number */}
+            <div className="flex flex-col items-center justify-center pt-2 pb-1">
+                <div className="flex items-baseline gap-0.5">
+                    <span className={`font-mono font-[400] leading-none text-[clamp(36px,8vw,48px)] tracking-tight ${
+                        edgePercentage >= 3 ? 'text-[var(--emerald)]' : 'text-[var(--bone)]'
+                    }`}>
                         {edgePercentage.toFixed(1)}
                     </span>
-                    <span className="text-2xl font-mono font-[300] text-[var(--emerald)]">%</span>
+                    <span className={`text-xl font-mono font-[300] ${
+                        edgePercentage >= 3 ? 'text-[var(--emerald)]/60' : 'text-[var(--bone)]/40'
+                    }`}>%</span>
                 </div>
-                <div className="mt-2 text-[9px] tracking-[0.2em] text-[var(--silver)] uppercase font-sans flex items-center gap-2">
-                    gap
-                    {volume && (
+                <div className="mt-2 flex items-center gap-2 text-[9px] tracking-[0.15em] text-[var(--silver)] uppercase font-sans">
+                    <span>gap</span>
+                    {volume != null && volume > 0 && (
                         <>
-                            <span className="w-1 h-1 rounded-full bg-white/10" />
-                            <span className="text-[var(--iron)]">${(volume / 1000).toFixed(1)}k Vol</span>
+                            <span className="w-[3px] h-[3px] rounded-full bg-white/10" />
+                            <span className="text-[var(--iron)]">${(volume / 1000).toFixed(0)}k vol</span>
                         </>
                     )}
                 </div>
@@ -96,7 +119,11 @@ export const EdgeCard: React.FC<EdgeCardProps> = ({
     );
 
     if (link) {
-        return <Link to={link} className="block hover:scale-[1.02] transition-transform">{card}</Link>;
+        return (
+            <Link to={link} className="block">
+                {card}
+            </Link>
+        );
     }
 
     return card;
