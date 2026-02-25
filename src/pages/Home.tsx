@@ -48,14 +48,15 @@ export const Home: React.FC = () => {
                 </div>
 
                 <h1 className="text-[clamp(36px,6vw,56px)] font-sans font-[200] leading-[1.1] tracking-tight text-[var(--ivory)] mb-4 max-w-3xl">
-                    Cross-ecosystem
+                    World Cup 2026
                     <br />
-                    <span className="text-[var(--emerald)]">edge intelligence</span>
+                    <span className="text-[var(--emerald)]">odds compared</span>
                 </h1>
 
                 <p className="text-[17px] text-[var(--mist)] font-sans leading-relaxed max-w-xl mb-12">
-                    Comparing sportsbook odds against prediction market prices
-                    to surface mathematical gaps across 104 World Cup matches.
+                    Sportsbook lines and prediction market prices for all 104
+                    matches. See where DraftKings, FanDuel, Kalshi, and
+                    Polymarket disagree — and by how much.
                 </p>
 
                 {/* Featured edge — USA Group D */}
@@ -65,7 +66,7 @@ export const Home: React.FC = () => {
                 >
                     <div className="flex items-center justify-between mb-4">
                         <span className="text-[10px] tracking-[0.2em] text-[var(--emerald)] uppercase font-[500] font-sans">
-                            Featured Edge
+                            USA Group D Odds
                         </span>
                         <span className="text-[11px] text-[var(--silver)] font-sans group-hover:text-[var(--bone)] transition-colors">
                             View analysis &rarr;
@@ -128,10 +129,11 @@ export const Home: React.FC = () => {
                     </span>
                 </div>
                 <p className="text-[15px] text-[var(--mist)] font-sans leading-relaxed">
-                    Sportsbooks set odds based on liability and handle. Prediction markets like Kalshi
-                    and Polymarket set prices through open order books. When these two ecosystems price
-                    the same outcome differently, the gap is a measurable signal. The Drip finds those gaps,
-                    devigorizes the sportsbook line using the power method, and surfaces the edge as a percentage.
+                    Sportsbooks like DraftKings and FanDuel set odds based on how much money
+                    comes in on each side. Prediction markets like Kalshi and Polymarket set
+                    prices through open order books where traders buy and sell contracts.
+                    When these two systems price the same World Cup outcome differently,
+                    the gap tells you something. The Drip tracks those gaps across every match.
                 </p>
             </section>
         </Layout>
