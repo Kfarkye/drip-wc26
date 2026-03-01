@@ -175,6 +175,149 @@ const TEAM_ODDS: Record<string, { odds: string; implied: string; pct: number; is
     PAN: { odds: '+100000', implied: '<0.1%', pct: 0, isLongshot: true },
 };
 
+type DeepDiveBlock = {
+    standfirst: string;
+    marketAngle: string;
+    tacticalAngle: string;
+    quote: string;
+    watchlist: [string, string, string];
+};
+
+const GROUP_DEEP_DIVE: Record<string, DeepDiveBlock> = {
+    A: {
+        standfirst: 'Mexico owns altitude, but Group A still turns on one tactical hinge: who controls midfield tempo in Monterrey.',
+        marketAngle: 'The market prices Mexico as the probable table-setter, yet the gap to second remains narrow enough that one early upset can reset qualification math before Matchday 2.',
+        tacticalAngle: 'South Korea and South Africa both profile as transition-heavy sides; if Mexico slows matches into set-piece territory, Group A tilts toward favorite-first outcomes.',
+        quote: 'In a four-team group, one broken game-state can rewrite the table in 90 minutes.',
+        watchlist: [
+            'Press resistance: can Mexico escape first-wave pressure without conceding transition shots?',
+            'Set-piece volume: dead-ball chances should account for an outsized share of xG here.',
+            'Third-match leverage: qualification incentives may diverge sharply by Matchday 3.'
+        ],
+    },
+    B: {
+        standfirst: 'Group B is less about star power and more about floor: the side that avoids a single low-probability collapse likely tops the group.',
+        marketAngle: 'Pricing clusters tightly behind the front-runner, signaling a market that expects variance and values depth over headline upside.',
+        tacticalAngle: 'Expect compact blocks, low shot quality, and thin margins decided by rest-defense rather than open-play creativity.',
+        quote: 'Balanced groups are won by error minimization, not highlight reels.',
+        watchlist: [
+            'Defensive spacing when fullbacks push high in possession.',
+            'Shot suppression from central zones in first halves.',
+            'Late-game substitutions and fresh-leg counterattacks.'
+        ],
+    },
+    C: {
+        standfirst: 'Group C carries knockout-round quality from day one, and every early result distorts bracket expectations.',
+        marketAngle: 'The favorite has weight, but market respect for the chaser remains meaningful, keeping group-winner pricing sensitive to one marquee matchup.',
+        tacticalAngle: 'Possession control versus direct wide attacks is the defining clash profile; whichever side dictates field tilt wins territory and game state.',
+        quote: 'This is a quarterfinal-level matchup disguised as group-stage scheduling.',
+        watchlist: [
+            'Wing isolation success against elite fullbacks.',
+            'Counter-press recoveries in the first five seconds after turnovers.',
+            'Set-piece conversion in high-leverage matches.'
+        ],
+    },
+    D: {
+        standfirst: 'Host leverage helps the U.S., but Group D remains a sequencing problem: opening points decide whether Matchday 3 is control or chaos.',
+        marketAngle: 'Sportsbook and market pricing agree on hierarchy but disagree in pockets on ceiling, which is where edge opportunities still appear.',
+        tacticalAngle: 'If the U.S. turns territorial dominance into early goals, they can rotate later; if not, transition defense becomes a recurring pressure point.',
+        quote: 'The difference between calm qualification and late-table panic is often one first-match goal.',
+        watchlist: [
+            'U.S. chance creation from half-space entries versus low blocks.',
+            'Paraguay efficiency on first-pass counters after regain.',
+            'Matchday-3 incentive splits when qualification is partially settled.'
+        ],
+    },
+    E: {
+        standfirst: 'Group E is a credibility test for a giant and an opportunity set for everyone else.',
+        marketAngle: 'Favorite pricing is strong, but tail outcomes remain alive enough that underdog derivatives can move materially after one result.',
+        tacticalAngle: 'Germany should control possession volume; the question is whether final-third efficiency matches territorial dominance.',
+        quote: 'When pressure rises, conversion rate matters more than possession share.',
+        watchlist: [
+            'Final-third shot quality versus packed central blocks.',
+            'Turnover exposure when center-backs carry into midfield.',
+            'Goalkeeper shot-stopping variance in one-goal games.'
+        ],
+    },
+    F: {
+        standfirst: 'Group F is classic upset terrain: structured favorite, dangerous spoiler, and a route to volatility.',
+        marketAngle: 'Markets acknowledge top-end quality but price enough uncertainty to keep live re-pricing aggressive after every slate.',
+        tacticalAngle: 'Japan-style pressing traps and vertical transitions can punish slow buildup teams that overcommit in phase one.',
+        quote: 'Trap groups punish hesitation and reward tactical clarity.',
+        watchlist: [
+            'Press-break success rate in the middle third.',
+            'Defensive line depth after loss of possession.',
+            'Bench impact from minute 60 onward.'
+        ],
+    },
+    G: {
+        standfirst: 'Group G reads like a succession story: proven names versus teams peaking at the right cycle moment.',
+        marketAngle: 'The board leans toward pedigree, but confidence intervals are wider than reputation suggests.',
+        tacticalAngle: 'Compact defensive blocks and selective pressing should force low-event matches where one finishing sequence decides outcomes.',
+        quote: 'In low-event groups, the first goal often becomes the whole script.',
+        watchlist: [
+            'Direct-ball effectiveness into second-ball recoveries.',
+            'Cross volume versus central penetration tradeoffs.',
+            'Discipline profile under high officiating pressure.'
+        ],
+    },
+    H: {
+        standfirst: 'Group H is where public-handle gravity collides with genuine knockout-caliber opposition.',
+        marketAngle: 'Heavier money on the headline side can create asymmetric value if challengers stay within one result entering Matchday 3.',
+        tacticalAngle: 'Midfield duel control and set-piece defense should be decisive against physically robust challengers.',
+        quote: 'Handle tells you where attention is; structure tells you where risk lives.',
+        watchlist: [
+            'Ball progression under coordinated midfield pressure.',
+            'Set-piece concession rates in defensive restarts.',
+            'Fatigue indicators in high-minute core players.'
+        ],
+    },
+    I: {
+        standfirst: 'Group I is a ratings machine and a tactical stress test, with elite attacking talent on both sides of the bracket line.',
+        marketAngle: 'Top-end prices are strong, but the market still leaves room for sharp intragroup swings after head-to-head outcomes.',
+        tacticalAngle: 'Defensive line management against world-class runners will decide whether control teams can keep match tempo stable.',
+        quote: 'Elite forwards don’t need many touches; they need one bad step from you.',
+        watchlist: [
+            'Recovery speed against vertical runs in transition.',
+            'Chance quality conceded after set-piece second phases.',
+            'Press-trigger timing against elite ball carriers.'
+        ],
+    },
+    J: {
+        standfirst: 'Group J blends legacy narratives with modern efficiency: emotional weight meets cold probability math.',
+        marketAngle: 'Public sentiment can compress one side’s price, increasing value sensitivity on disciplined opposition outcomes.',
+        tacticalAngle: 'Game management after scoring first should separate contenders from volatility candidates.',
+        quote: 'In tournament football, composure is a statistical edge.',
+        watchlist: [
+            'Shot volume allowed after opening-goal states.',
+            'Progressive passing chains into zone-14 entries.',
+            'Set-piece expected-threat share by team.'
+        ],
+    },
+    K: {
+        standfirst: 'Group K has star gravity but enough mature challengers to punish any overconfident projection.',
+        marketAngle: 'The favorite remains justified, yet market depth indicates credible resistance from teams with proven tournament floor.',
+        tacticalAngle: 'Defensive compactness versus wide overloads should drive chance creation volume in key fixtures.',
+        quote: 'Name recognition wins headlines; spacing wins matches.',
+        watchlist: [
+            'Wide-channel duel win rates and cutback prevention.',
+            'Counter-control after attacking fullback overlaps.',
+            'Bench shot creation from late tactical shifts.'
+        ],
+    },
+    L: {
+        standfirst: 'Group L is the most punishment-heavy path: experienced powers, physical contests, and little room for slow starts.',
+        marketAngle: 'Consensus calls it the hardest group, and live prices should be the most reactive of any section after each slate.',
+        tacticalAngle: 'Aerial control, duel win rate, and set-piece execution project as match-deciding levers more than pure possession share.',
+        quote: 'In a true group of death, every point has knockout-round value.',
+        watchlist: [
+            'Box-entry prevention and second-ball clearances.',
+            'Expected threat from corners and indirect free kicks.',
+            'Card accumulation risk in high-contact fixtures.'
+        ],
+    },
+};
+
 const normalizeBookName = (name: string): string => name.toLowerCase().replace(/\s+/g, '');
 
 const buildBookBreakdown = (
@@ -194,6 +337,17 @@ const buildBookBreakdown = (
         { name: 'FanDuel', price: fanDuelPrice, type: 'sportsbook' as const, link: 'https://www.fanduel.com' },
         { name: 'Polymarket', price: pmPrice, type: 'market' as const, link: 'https://polymarket.com' },
     ];
+};
+
+const parseImpliedPercent = (implied: string): number | null => {
+    if (!implied || implied === '—') return null;
+    const clean = implied.trim();
+    if (clean.startsWith('<')) {
+        const value = Number(clean.replace(/[<%]/g, ''));
+        return Number.isFinite(value) ? value : null;
+    }
+    const value = Number(clean.replace('%', ''));
+    return Number.isFinite(value) ? value : null;
 };
 
 export const GroupPage: React.FC = () => {
@@ -235,6 +389,47 @@ export const GroupPage: React.FC = () => {
         }))
         : (meta.edges || []);
 
+    const deepDive = GROUP_DEEP_DIVE[upperLetter];
+
+    const teamMarketView = group.teams
+        .map((team) => {
+            const odds = getOdds(team.code);
+            const impliedPct = odds ? parseImpliedPercent(odds.implied) : null;
+            return { team, odds, impliedPct };
+        })
+        .sort((a, b) => (b.impliedPct ?? -1) - (a.impliedPct ?? -1));
+
+    const favoriteTeam = teamMarketView[0];
+    const secondTeam = teamMarketView[1];
+    const favoriteGap = (favoriteTeam?.impliedPct != null && secondTeam?.impliedPct != null)
+        ? Math.max(favoriteTeam.impliedPct - secondTeam.impliedPct, 0)
+        : null;
+
+    const parityLabel =
+        favoriteGap == null ? 'n/a' :
+            favoriteGap < 4 ? 'wide-open' :
+                favoriteGap < 10 ? 'competitive' : 'top-heavy';
+
+    const kickoffTimes = group.matches
+        .map((match) => new Date(match.kickoff).getTime())
+        .filter((time) => Number.isFinite(time));
+
+    const scheduleWindowDays = kickoffTimes.length > 1
+        ? Math.round((Math.max(...kickoffTimes) - Math.min(...kickoffTimes)) / (1000 * 60 * 60 * 24))
+        : 0;
+
+    const venueCount = new Set(group.matches.map((m) => `${m.venue.name}|${m.venue.city}`)).size;
+    const impliedLookup = new Map(teamMarketView.map((entry) => [entry.team.code, entry.impliedPct ?? 0]));
+
+    const fixtureFocus = group.matches.reduce<{
+        score: number;
+        match: (typeof group.matches)[number] | null;
+    }>((best, match) => {
+        const score = (impliedLookup.get(match.homeTeam.code) ?? 0) + (impliedLookup.get(match.awayTeam.code) ?? 0);
+        if (score > best.score) return { score, match };
+        return best;
+    }, { score: -1, match: null }).match;
+
     const faqs = [
         {
             question: `Who will win World Cup 2026 Group ${upperLetter}?`,
@@ -245,6 +440,10 @@ export const GroupPage: React.FC = () => {
             answer: group.matches.length > 0
                 ? `Group ${upperLetter} matches are hosted at ${[...new Set(group.matches.map(m => `${m.venue.name}, ${m.venue.city}`))].join('; ')}.`
                 : `Venue information will be confirmed closer to the tournament.`,
+        },
+        {
+            question: `How should I read Group ${upperLetter} edge cards?`,
+            answer: `Each card compares BetMGM, FanDuel, and Polymarket side by side. Use the directional marker to see whether sportsbook pricing or market pricing is currently more aggressive.`,
         },
     ];
 
@@ -285,6 +484,174 @@ export const GroupPage: React.FC = () => {
                     <section className="mb-14 prose-editorial">
                         <p>{meta.analysis}</p>
                     </section>
+
+                    {/* ═══ Editorial Deep Dive ═══ */}
+                    {deepDive && (
+                        <section className="mb-14">
+                            <div
+                                className="flex items-baseline justify-between pb-2 mb-6 border-b-[3px]"
+                                style={{ borderColor: 'var(--gray-900)' }}
+                            >
+                                <h3
+                                    className="text-xl uppercase tracking-[-0.02em]"
+                                    style={{ fontFamily: 'var(--font-ui)', fontWeight: 800 }}
+                                >
+                                    Deep Dive
+                                </h3>
+                                <span
+                                    className="text-[13px] uppercase"
+                                    style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, color: 'var(--gray-500)' }}
+                                >
+                                    Editorial + Market
+                                </span>
+                            </div>
+
+                            <h2
+                                className="text-[clamp(28px,4vw,40px)] tracking-[-0.02em] leading-[1.12] mb-7"
+                                style={{ fontFamily: 'var(--font-prose)', fontWeight: 700, color: 'var(--gray-900)' }}
+                            >
+                                {deepDive.standfirst}
+                            </h2>
+
+                            <div className="grid lg:grid-cols-[230px_1fr] gap-8 items-start">
+                                <aside className="space-y-3">
+                                    <div className="border p-3" style={{ borderColor: 'var(--gray-300)', background: 'var(--gray-50)' }}>
+                                        <div
+                                            className="text-[10px] uppercase tracking-[0.08em] mb-1"
+                                            style={{ fontFamily: 'var(--font-ui)', fontWeight: 800, color: 'var(--gray-500)' }}
+                                        >
+                                            Favorite
+                                        </div>
+                                        <div
+                                            className="text-base leading-tight"
+                                            style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, color: 'var(--gray-900)' }}
+                                        >
+                                            {favoriteTeam?.team.name ?? group.teams[0].name}
+                                        </div>
+                                        <div
+                                            className="text-[12px]"
+                                            style={{ fontFamily: 'var(--font-data)', fontWeight: 700, color: 'var(--brand-red)' }}
+                                        >
+                                            {favoriteTeam?.odds?.implied ?? '—'} implied
+                                        </div>
+                                    </div>
+
+                                    <div className="border p-3" style={{ borderColor: 'var(--gray-300)' }}>
+                                        <div
+                                            className="text-[10px] uppercase tracking-[0.08em] mb-1"
+                                            style={{ fontFamily: 'var(--font-ui)', fontWeight: 800, color: 'var(--gray-500)' }}
+                                        >
+                                            Market Separation
+                                        </div>
+                                        <div
+                                            className="text-base"
+                                            style={{ fontFamily: 'var(--font-data)', fontWeight: 700, color: 'var(--gray-900)' }}
+                                        >
+                                            {favoriteGap != null ? `${favoriteGap.toFixed(1)} pts` : 'n/a'}
+                                        </div>
+                                        <div
+                                            className="text-[12px] uppercase"
+                                            style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, color: 'var(--gray-500)' }}
+                                        >
+                                            {parityLabel}
+                                        </div>
+                                    </div>
+
+                                    <div className="border p-3" style={{ borderColor: 'var(--gray-300)' }}>
+                                        <div
+                                            className="text-[10px] uppercase tracking-[0.08em] mb-1"
+                                            style={{ fontFamily: 'var(--font-ui)', fontWeight: 800, color: 'var(--gray-500)' }}
+                                        >
+                                            Tournament Load
+                                        </div>
+                                        <div
+                                            className="text-base"
+                                            style={{ fontFamily: 'var(--font-data)', fontWeight: 700, color: 'var(--gray-900)' }}
+                                        >
+                                            {venueCount} venues
+                                        </div>
+                                        <div
+                                            className="text-[12px] uppercase"
+                                            style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, color: 'var(--gray-500)' }}
+                                        >
+                                            {scheduleWindowDays} day window
+                                        </div>
+                                    </div>
+                                </aside>
+
+                                <div>
+                                    <div className="prose-editorial">
+                                        <p>{deepDive.marketAngle}</p>
+                                        <p>{deepDive.tacticalAngle}</p>
+                                    </div>
+
+                                    <blockquote
+                                        className="my-8 py-6 pl-6 pr-3"
+                                        style={{
+                                            borderLeft: '5px solid var(--brand-red)',
+                                            background: 'linear-gradient(90deg, var(--gray-50), transparent)',
+                                        }}
+                                    >
+                                        <p
+                                            className="!text-[24px] !leading-[1.35] !tracking-[-0.01em] !mb-0 italic"
+                                            style={{ fontFamily: 'var(--font-prose)', fontWeight: 500, color: 'var(--gray-900)' }}
+                                        >
+                                            "{deepDive.quote}"
+                                        </p>
+                                    </blockquote>
+
+                                    <div
+                                        className="border p-4 mb-3"
+                                        style={{ borderColor: 'var(--gray-300)', background: 'var(--gray-50)' }}
+                                    >
+                                        <div
+                                            className="text-[10px] uppercase tracking-[0.08em] mb-2"
+                                            style={{ fontFamily: 'var(--font-ui)', fontWeight: 800, color: 'var(--gray-500)' }}
+                                        >
+                                            Fixture To Circle
+                                        </div>
+                                        <div
+                                            className="text-[17px] tracking-tight"
+                                            style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, color: 'var(--gray-900)' }}
+                                        >
+                                            {fixtureFocus ? `${fixtureFocus.homeTeam.name} vs ${fixtureFocus.awayTeam.name}` : 'TBD'}
+                                        </div>
+                                        {fixtureFocus && (
+                                            <div
+                                                className="text-[12px] uppercase"
+                                                style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, color: 'var(--gray-500)' }}
+                                            >
+                                                {new Date(fixtureFocus.kickoff).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} · {fixtureFocus.venue.city}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="grid md:grid-cols-3 gap-4 mt-7 stagger">
+                                {deepDive.watchlist.map((note, index) => (
+                                    <div
+                                        key={note}
+                                        className="border p-4"
+                                        style={{ borderColor: 'var(--gray-300)' }}
+                                    >
+                                        <div
+                                            className="text-[10px] uppercase tracking-[0.08em] mb-2"
+                                            style={{ fontFamily: 'var(--font-ui)', fontWeight: 800, color: 'var(--gray-500)' }}
+                                        >
+                                            Angle {index + 1}
+                                        </div>
+                                        <p
+                                            className="text-[15px] leading-relaxed m-0"
+                                            style={{ fontFamily: 'var(--font-prose)', color: 'var(--gray-800)' }}
+                                        >
+                                            {note}
+                                        </p>
+                                    </div>
+                                ))}
+                            </div>
+                        </section>
+                    )}
 
                     {/* ═══ Edge Cards (if available) ═══ */}
                     {displayEdges.length > 0 && (
