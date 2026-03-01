@@ -8,7 +8,7 @@ import { SchemaScript } from '../components/SchemaScript';
 import { generateGroupSchema } from '../lib/schema';
 import { allGroups } from '../data/groups';
 import { getFlagUrl } from '../lib/flags';
-import { getStaticTeamOdds, useGroupEdges, useGroupOdds } from '../hooks/useLiveData';
+import { useGroupEdges, useGroupOdds } from '../hooks/useLiveData';
 
 /* ── Group metadata for editorial treatments ── */
 const GROUP_META: Record<string, {
