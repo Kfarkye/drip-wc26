@@ -8,7 +8,7 @@ function App() {
     <Router>
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/group/d" element={<GroupPage />} />
+        <Route path="/group/:letter" element={<GroupPage />} />
         <Route path="/edges/:slug" element={<EdgeDetailPage />} />
       </Routes>
     </Router>
