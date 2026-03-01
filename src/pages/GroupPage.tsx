@@ -498,13 +498,13 @@ export const GroupPage: React.FC = () => {
                                     className="text-xl uppercase tracking-[-0.02em]"
                                     style={{ fontFamily: 'var(--font-ui)', fontWeight: 800 }}
                                 >
-                                    Deep Dive
+                                    How To Read This Group
                                 </h3>
                                 <span
                                     className="text-[13px] uppercase"
                                     style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, color: 'var(--gray-500)' }}
                                 >
-                                    Editorial + Market
+                                    Betting Context
                                 </span>
                             </div>
 
@@ -543,7 +543,7 @@ export const GroupPage: React.FC = () => {
                                             className="text-[10px] uppercase tracking-[0.08em] mb-1"
                                             style={{ fontFamily: 'var(--font-ui)', fontWeight: 800, color: 'var(--gray-500)' }}
                                         >
-                                            Market Separation
+                                            Gap To No. 2
                                         </div>
                                         <div
                                             className="text-base"
@@ -564,7 +564,7 @@ export const GroupPage: React.FC = () => {
                                             className="text-[10px] uppercase tracking-[0.08em] mb-1"
                                             style={{ fontFamily: 'var(--font-ui)', fontWeight: 800, color: 'var(--gray-500)' }}
                                         >
-                                            Tournament Load
+                                            Schedule Load
                                         </div>
                                         <div
                                             className="text-base"
@@ -610,7 +610,7 @@ export const GroupPage: React.FC = () => {
                                             className="text-[10px] uppercase tracking-[0.08em] mb-2"
                                             style={{ fontFamily: 'var(--font-ui)', fontWeight: 800, color: 'var(--gray-500)' }}
                                         >
-                                            Fixture To Circle
+                                            Match To Watch
                                         </div>
                                         <div
                                             className="text-[17px] tracking-tight"

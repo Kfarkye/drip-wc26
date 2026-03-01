@@ -60,7 +60,7 @@ export const Home: React.FC = () => {
                         className="text-[13px] uppercase tracking-[0.05em] mb-4"
                         style={{ fontFamily: 'var(--font-ui)', fontWeight: 800, color: 'var(--brand-red)' }}
                     >
-                        World Cup 2026 Prediction Markets
+                        World Cup 2026 Betting Markets
                     </div>
 
                     <h1
@@ -72,15 +72,16 @@ export const Home: React.FC = () => {
                             color: 'var(--gray-900)',
                         }}
                     >
-                        The Expanded Field: Odds and Probabilities for all 48 Teams
+                        Find Better World Cup Prices Before They Move
                     </h1>
 
                     <p
                         className="text-[22px] leading-[1.45] mb-8"
                         style={{ fontFamily: 'var(--font-prose)', fontWeight: 400, color: 'var(--gray-800)' }}
                     >
-                        With the tournament expanding and the US betting market fully regulated,
-                        oddsmakers are pricing the most complex World Cup group stage in history.
+                        You should not have to open five tabs to know if a number is good.
+                        The Drip shows sportsbook odds and market prices side by side so you can
+                        see the gap fast and act before it closes.
                     </p>
 
                     <div
@@ -103,17 +104,16 @@ export const Home: React.FC = () => {
                 {/* ═══ PROSE + MARKET DEPTH ═══ */}
                 <div className="max-w-[660px] mx-auto prose-editorial mb-14">
                     <p className="dropcap">
-                        The 2026 FIFA World Cup represents a seismic shift for international football.
-                        For the first time since the jump to 32 teams in 1998, the field has expanded,
-                        ballooning to 48 nations. This introduces a fundamentally new format—12 groups
-                        of four—where pathing and bracket luck matter just as much as raw talent.
+                        If you bet futures, your biggest edge is simple: getting the best number.
+                        This World Cup has 48 teams, more matches, and more ways for lines to drift.
+                        We track the board so you can spend less time hunting prices and more time
+                        making decisions.
                     </p>
 
                     <p>
-                        It also marks the first World Cup during the era of fully legalized, regulated
-                        sports betting in the United States. Across global prediction markets like
-                        Polymarket and regulated sportsbooks like DraftKings, over $223 million has
-                        already been traded on outright winners before a single ball has been kicked.
+                        Every page is built for one job: help you answer, "Is this price good right now?"
+                        You get sportsbook odds, market prices, implied probability, and context on what
+                        is driving the number.
                     </p>
 
                     {/* ── Market Depth Chart ── */}
@@ -194,11 +194,9 @@ export const Home: React.FC = () => {
                     </div>
 
                     <p>
-                        Because the top two teams from every group automatically advance—along with
-                        the eight best third-place finishers—a staggering two-thirds of the field
-                        will survive the group stage. This severely truncates the value of traditional
-                        advancement props, forcing sharp money entirely toward group winner markets
-                        and outright futures.
+                        Since 32 of 48 teams advance, "to advance" bets are less useful than they used
+                        to be. The real action is in group winner pricing and outrights, where books and
+                        markets disagree more often.
                     </p>
 
                     {/* ── Pull Quote ── */}
@@ -217,8 +215,7 @@ export const Home: React.FC = () => {
                                 color: 'var(--gray-900)',
                             }}
                         >
-                            "With 67% of the field advancing, the value shifts entirely. The question
-                            is no longer 'will they get out?' but rather 'how deep can they go?'"
+                            "You are not here for takes. You are here for better numbers."
                         </p>
                     </blockquote>
                 </div>
@@ -376,10 +373,8 @@ export const Home: React.FC = () => {
                         Group-by-Group Breakdown
                     </h2>
                     <p>
-                        FIFA's seeding mechanics ensure massive collisions are delayed. Spain and
-                        Argentina are mathematically insulated from each other until the July 19th
-                        final at MetLife Stadium. Below, outright tournament winner odds mapped to
-                        all 12 groups.
+                        Pick a group and get a clean view of who the market trusts, where prices differ,
+                        and which matchups are most likely to move the board next.
                     </p>
                 </div>
 
