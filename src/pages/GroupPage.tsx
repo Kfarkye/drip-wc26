@@ -419,7 +419,9 @@ export const GroupPage: React.FC = () => {
         : 0;
 
     const venueCount = new Set(group.matches.map((m) => `${m.venue.name}|${m.venue.city}`)).size;
-    const impliedLookup = new Map(teamMarketView.map((entry) => [entry.team.code, entry.impliedPct ?? 0]));
+    const impliedLookup = new Map<string, number>(
+        teamMarketView.map((entry): [string, number] => [entry.team.code, entry.impliedPct ?? 0])
+    );
 
     const fixtureFocus = group.matches.reduce<{
         score: number;
