@@ -1,6 +1,13 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 
+interface BookBreakdownItem {
+    name: string;
+    price: string;
+    type: 'sportsbook' | 'market';
+    link?: string;
+}
+
 interface EdgeCardProps {
     marketName: string;
     sportsbookName: string;
@@ -13,12 +20,30 @@ interface EdgeCardProps {
     confidence?: 'high' | 'medium' | 'low';
     volume?: number;
     link?: string;
+    bookBreakdown?: BookBreakdownItem[];
 }
 
 const confidenceStyles: Record<string, { bg: string; border: string; text: string }> = {
     high: { bg: 'rgba(204,0,0,0.06)', border: 'var(--brand-red)', text: 'var(--brand-red)' },
     medium: { bg: 'var(--gray-50)', border: 'var(--gray-800)', text: 'var(--gray-800)' },
     low: { bg: 'var(--gray-50)', border: 'var(--gray-300)', text: 'var(--gray-500)' },
+};
+
+const parseAmericanOdds = (odds: string): number | null => {
+    const cleaned = odds.trim().replace(/[^\d+-]/g, '');
+    const parsed = Number(cleaned);
+    return Number.isFinite(parsed) ? parsed : null;
+};
+
+const parsePredictionPrice = (price: string): number | null => {
+    const numeric = Number(price.replace(/[^\d.]/g, ''));
+    if (!Number.isFinite(numeric)) return null;
+    return numeric > 1 ? numeric / 100 : numeric;
+};
+
+const americanToImplied = (american: number): number => {
+    if (american > 0) return 100 / (american + 100);
+    return Math.abs(american) / (Math.abs(american) + 100);
 };
 
 export const EdgeCard: React.FC<EdgeCardProps> = ({
@@ -33,8 +58,21 @@ export const EdgeCard: React.FC<EdgeCardProps> = ({
     confidence = 'medium',
     volume,
     link,
+    bookBreakdown,
 }) => {
     const cStyle = confidenceStyles[confidence];
+    const parsedSbOdds = parseAmericanOdds(sportsbookOdds);
+    const parsedPmPrice = parsePredictionPrice(predictionPrice);
+
+    let directionLabel: '↑ sportsbook favors' | '↓ market favors' | null = null;
+    if (parsedSbOdds != null && parsedPmPrice != null) {
+        const sportsbookImplied = americanToImplied(parsedSbOdds);
+        if (sportsbookImplied > parsedPmPrice) {
+            directionLabel = '↑ sportsbook favors';
+        } else if (sportsbookImplied < parsedPmPrice) {
+            directionLabel = '↓ market favors';
+        }
+    }
 
     const card = (
         <div
@@ -73,72 +111,119 @@ export const EdgeCard: React.FC<EdgeCardProps> = ({
 
             {/* Odds comparison rows */}
             <div className="px-5">
-                <div
-                    className="flex items-center justify-between py-3"
-                    style={{ borderBottom: '1px solid var(--gray-200)' }}
-                >
-                    <div className="flex items-center gap-2">
-                        <span
-                            className="w-[3px] h-3 rounded-full"
-                            style={{ background: 'var(--brand-red)' }}
-                        />
-                        <span
-                            className="text-[13px]"
-                            style={{ fontFamily: 'var(--font-ui)', fontWeight: 500, color: 'var(--gray-500)' }}
-                        >
-                            {sportsbookLink ? (
-                                <a
-                                    href={sportsbookLink}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="hover:underline"
-                                    style={{ color: 'var(--gray-500)' }}
-                                    onClick={(e) => e.stopPropagation()}
+                {bookBreakdown && bookBreakdown.length > 0 ? (
+                    <div className="py-1">
+                        {bookBreakdown.map((book, index) => {
+                            const showDivider = index < bookBreakdown.length - 1;
+                            const bulletColor = book.type === 'sportsbook' ? 'var(--brand-red)' : 'var(--gray-400)';
+                            return (
+                                <div
+                                    key={`${book.name}-${book.price}`}
+                                    className="flex items-center justify-between py-2.5"
+                                    style={showDivider ? { borderBottom: '1px solid var(--gray-200)' } : undefined}
                                 >
-                                    {sportsbookName}
-                                </a>
-                            ) : sportsbookName}
-                        </span>
+                                    <div className="flex items-center gap-2">
+                                        <span className="w-[3px] h-3 rounded-full" style={{ background: bulletColor }} />
+                                        <span
+                                            className="text-[13px]"
+                                            style={{ fontFamily: 'var(--font-ui)', fontWeight: 500, color: 'var(--gray-500)' }}
+                                        >
+                                            {book.link ? (
+                                                <a
+                                                    href={book.link}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="hover:underline"
+                                                    style={{ color: 'var(--gray-500)' }}
+                                                    onClick={(e) => e.stopPropagation()}
+                                                >
+                                                    {book.name}
+                                                </a>
+                                            ) : (
+                                                book.name
+                                            )}
+                                        </span>
+                                    </div>
+                                    <span
+                                        className="text-sm tracking-tight"
+                                        style={{ fontFamily: 'var(--font-data)', fontWeight: 700, color: 'var(--gray-900)' }}
+                                    >
+                                        {book.price}
+                                    </span>
+                                </div>
+                            );
+                        })}
                     </div>
-                    <span
-                        className="text-sm tracking-tight"
-                        style={{ fontFamily: 'var(--font-data)', fontWeight: 700, color: 'var(--gray-900)' }}
-                    >
-                        {sportsbookOdds}
-                    </span>
-                </div>
+                ) : (
+                    <>
+                        <div
+                            className="flex items-center justify-between py-3"
+                            style={{ borderBottom: '1px solid var(--gray-200)' }}
+                        >
+                            <div className="flex items-center gap-2">
+                                <span
+                                    className="w-[3px] h-3 rounded-full"
+                                    style={{ background: 'var(--brand-red)' }}
+                                />
+                                <span
+                                    className="text-[13px]"
+                                    style={{ fontFamily: 'var(--font-ui)', fontWeight: 500, color: 'var(--gray-500)' }}
+                                >
+                                    {sportsbookLink ? (
+                                        <a
+                                            href={sportsbookLink}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="hover:underline"
+                                            style={{ color: 'var(--gray-500)' }}
+                                            onClick={(e) => e.stopPropagation()}
+                                        >
+                                            {sportsbookName}
+                                        </a>
+                                    ) : sportsbookName}
+                                </span>
+                            </div>
+                            <span
+                                className="text-sm tracking-tight"
+                                style={{ fontFamily: 'var(--font-data)', fontWeight: 700, color: 'var(--gray-900)' }}
+                            >
+                                {sportsbookOdds}
+                            </span>
+                        </div>
 
-                <div className="flex items-center justify-between py-3">
-                    <div className="flex items-center gap-2">
-                        <span
-                            className="w-[3px] h-3 rounded-full"
-                            style={{ background: 'var(--gray-300)' }}
-                        />
-                        <span
-                            className="text-[13px]"
-                            style={{ fontFamily: 'var(--font-ui)', fontWeight: 500, color: 'var(--gray-500)' }}
-                        >
-                            {predictionLink ? (
-                                <a
-                                    href={predictionLink}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="hover:underline"
-                                    style={{ color: 'var(--gray-500)' }}
-                                    onClick={(e) => e.stopPropagation()}
+                        <div className="flex items-center justify-between py-3">
+                            <div className="flex items-center gap-2">
+                                <span
+                                    className="w-[3px] h-3 rounded-full"
+                                    style={{ background: 'var(--gray-300)' }}
+                                />
+                                <span
+                                    className="text-[13px]"
+                                    style={{ fontFamily: 'var(--font-ui)', fontWeight: 500, color: 'var(--gray-500)' }}
                                 >
-                                    {predictionName}
-                                </a>
-                            ) : predictionName}
-                        </span>
-                    </div>
-                    <span
-                        className="text-sm tracking-tight"
-                        style={{ fontFamily: 'var(--font-data)', fontWeight: 700, color: 'var(--gray-900)' }}
-                    >
-                        {predictionPrice}
-                    </span>
-                </div>
+                                    {predictionLink ? (
+                                        <a
+                                            href={predictionLink}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="hover:underline"
+                                            style={{ color: 'var(--gray-500)' }}
+                                            onClick={(e) => e.stopPropagation()}
+                                        >
+                                            {predictionName}
+                                        </a>
+                                    ) : predictionName}
+                                </span>
+                            </div>
+                            <span
+                                className="text-sm tracking-tight"
+                                style={{ fontFamily: 'var(--font-data)', fontWeight: 700, color: 'var(--gray-900)' }}
+                            >
+                                {predictionPrice}
+                            </span>
+                        </div>
+                    </>
+                )}
             </div>
 
             {/* Edge hero number */}
@@ -176,6 +261,24 @@ export const EdgeCard: React.FC<EdgeCardProps> = ({
                     >
                         gap
                     </span>
+                    {directionLabel && (
+                        <>
+                            <span
+                                className="w-[3px] h-[3px] rounded-full"
+                                style={{ background: 'var(--gray-300)' }}
+                            />
+                            <span
+                                className="text-[9px] uppercase tracking-[0.06em]"
+                                style={{
+                                    fontFamily: 'var(--font-ui)',
+                                    fontWeight: 800,
+                                    color: directionLabel.includes('sportsbook') ? 'var(--brand-red)' : 'var(--gray-700)',
+                                }}
+                            >
+                                {directionLabel}
+                            </span>
+                        </>
+                    )}
                     {volume != null && volume > 0 && (
                         <>
                             <span

@@ -21,6 +21,12 @@ const GROUP_META: Record<string, {
         sbOdds: string;
         pmName: string;
         pmPrice: string;
+        bookBreakdown?: Array<{
+            name: string;
+            price: string;
+            type: 'sportsbook' | 'market';
+            link?: string;
+        }>;
         edge: number;
         confidence: 'high' | 'medium' | 'low';
         volume: number;
@@ -43,9 +49,54 @@ const GROUP_META: Record<string, {
         badge: 'Host Nation', badgeType: 'host',
         analysis: 'Highly favorable draw for the USMNT. Pochettino avoids elite European squads while playing securely on home soil. The opening match against Paraguay at SoFi sets the tournament tone.',
         edges: [
-            { market: 'USA to Win Group D', sbName: 'DraftKings', sbOdds: '+125', pmName: 'Kalshi', pmPrice: '45¢', edge: 0.6, confidence: 'low', volume: 124000, link: '/edges/usa-to-win-group-d' },
-            { market: 'Paraguay to Win Group D', sbName: 'DraftKings', sbOdds: '+800', pmName: 'Kalshi', pmPrice: '10¢', edge: 1.1, confidence: 'low', volume: 12000, link: '/edges/paraguay-to-win-group-d' },
-            { market: 'Australia to Win Group D', sbName: 'DraftKings', sbOdds: '+600', pmName: 'Kalshi', pmPrice: '14¢', edge: 2.4, confidence: 'low', volume: 8500, link: '/edges/australia-to-win-group-d' },
+            {
+                market: 'USA to Win Group D',
+                sbName: 'BetMGM',
+                sbOdds: '+125',
+                pmName: 'Polymarket',
+                pmPrice: '45¢',
+                bookBreakdown: [
+                    { name: 'BetMGM', price: '+125', type: 'sportsbook', link: 'https://sports.betmgm.com' },
+                    { name: 'FanDuel', price: '+130', type: 'sportsbook', link: 'https://www.fanduel.com' },
+                    { name: 'Polymarket', price: '45¢', type: 'market', link: 'https://polymarket.com' },
+                ],
+                edge: 0.6,
+                confidence: 'low',
+                volume: 124000,
+                link: '/edges/usa-to-win-group-d',
+            },
+            {
+                market: 'Paraguay to Win Group D',
+                sbName: 'BetMGM',
+                sbOdds: '+775',
+                pmName: 'Polymarket',
+                pmPrice: '10¢',
+                bookBreakdown: [
+                    { name: 'BetMGM', price: '+775', type: 'sportsbook', link: 'https://sports.betmgm.com' },
+                    { name: 'FanDuel', price: '+800', type: 'sportsbook', link: 'https://www.fanduel.com' },
+                    { name: 'Polymarket', price: '10¢', type: 'market', link: 'https://polymarket.com' },
+                ],
+                edge: 1.1,
+                confidence: 'low',
+                volume: 12000,
+                link: '/edges/paraguay-to-win-group-d',
+            },
+            {
+                market: 'Australia to Win Group D',
+                sbName: 'BetMGM',
+                sbOdds: '+600',
+                pmName: 'Polymarket',
+                pmPrice: '14¢',
+                bookBreakdown: [
+                    { name: 'BetMGM', price: '+600', type: 'sportsbook', link: 'https://sports.betmgm.com' },
+                    { name: 'FanDuel', price: '+650', type: 'sportsbook', link: 'https://www.fanduel.com' },
+                    { name: 'Polymarket', price: '14¢', type: 'market', link: 'https://polymarket.com' },
+                ],
+                edge: 2.4,
+                confidence: 'low',
+                volume: 8500,
+                link: '/edges/australia-to-win-group-d',
+            },
         ],
     },
     E: {
@@ -124,6 +175,27 @@ const TEAM_ODDS: Record<string, { odds: string; implied: string; pct: number; is
     PAN: { odds: '+100000', implied: '<0.1%', pct: 0, isLongshot: true },
 };
 
+const normalizeBookName = (name: string): string => name.toLowerCase().replace(/\s+/g, '');
+
+const buildBookBreakdown = (
+    sbName: string,
+    sbOdds: string,
+    pmPrice: string,
+    preset?: Array<{ name: string; price: string; type: 'sportsbook' | 'market'; link?: string }>
+) => {
+    if (preset && preset.length > 0) return preset;
+
+    const normalized = normalizeBookName(sbName);
+    const betMgmPrice = normalized.includes('betmgm') ? sbOdds : '—';
+    const fanDuelPrice = normalized.includes('fanduel') ? sbOdds : '—';
+
+    return [
+        { name: 'BetMGM', price: betMgmPrice, type: 'sportsbook' as const, link: 'https://sports.betmgm.com' },
+        { name: 'FanDuel', price: fanDuelPrice, type: 'sportsbook' as const, link: 'https://www.fanduel.com' },
+        { name: 'Polymarket', price: pmPrice, type: 'market' as const, link: 'https://polymarket.com' },
+    ];
+};
+
 export const GroupPage: React.FC = () => {
     const { letter } = useParams<{ letter: string }>();
     const upperLetter = letter?.toUpperCase() ?? '';
@@ -155,6 +227,7 @@ export const GroupPage: React.FC = () => {
             sbOdds: e.sbOdds,
             pmName: e.pmName,
             pmPrice: e.pmPrice,
+            bookBreakdown: buildBookBreakdown(e.sbName, e.sbOdds, e.pmPrice),
             edge: e.edge,
             confidence: e.confidence,
             volume: e.volume,
@@ -165,7 +238,7 @@ export const GroupPage: React.FC = () => {
     const faqs = [
         {
             question: `Who will win World Cup 2026 Group ${upperLetter}?`,
-            answer: `${group.teams[0].name} is the group favorite based on current sportsbook odds. See the odds table above for full probabilities across all four teams.`,
+            answer: `${group.teams[0].name} is the group favorite based on current sportsbook and Polymarket pricing. See the odds table above for full probabilities across all four teams.`,
         },
         {
             question: `Where is World Cup 2026 Group ${upperLetter} being played?`,
@@ -230,7 +303,7 @@ export const GroupPage: React.FC = () => {
                                     className="text-[13px] uppercase"
                                     style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, color: hasLiveEdges ? 'var(--brand-red)' : 'var(--gray-500)' }}
                                 >
-                                    {hasLiveEdges ? 'Live' : 'Book vs Market'}
+                                    {hasLiveEdges ? 'Live Multi-book' : 'Book Breakdown'}
                                 </span>
                             </div>
 
@@ -241,10 +314,11 @@ export const GroupPage: React.FC = () => {
                                         marketName={edge.market}
                                         sportsbookName={edge.sbName}
                                         sportsbookOdds={edge.sbOdds}
-                                        sportsbookLink="https://www.draftkings.com"
+                                        sportsbookLink="https://sports.betmgm.com"
                                         predictionName={edge.pmName}
                                         predictionPrice={edge.pmPrice}
-                                        predictionLink="https://www.kalshi.com"
+                                        predictionLink="https://polymarket.com"
+                                        bookBreakdown={buildBookBreakdown(edge.sbName, edge.sbOdds, edge.pmPrice, edge.bookBreakdown)}
                                         edgePercentage={edge.edge}
                                         confidence={edge.confidence}
                                         volume={edge.volume}

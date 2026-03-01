@@ -125,11 +125,22 @@ export const Home: React.FC = () => {
                             >
                                 Market Handle Distribution
                             </div>
-                            <div
-                                className="text-base uppercase"
-                                style={{ fontFamily: 'var(--font-data)', fontWeight: 600, color: 'var(--gray-500)' }}
-                            >
-                                {totalVolume} Total
+                            <div className="text-right">
+                                <div
+                                    className="text-base uppercase"
+                                    style={{ fontFamily: 'var(--font-data)', fontWeight: 600, color: 'var(--gray-500)' }}
+                                >
+                                    {totalVolume} Total
+                                </div>
+                                <a
+                                    href="https://polymarket.com"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-[10px] uppercase tracking-[0.08em] hover:underline"
+                                    style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, color: 'var(--brand-red)' }}
+                                >
+                                    Powered by Polymarket
+                                </a>
                             </div>
                         </div>
 
