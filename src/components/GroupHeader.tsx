@@ -1,40 +1,104 @@
 import React from 'react';
-
-interface Team {
-    name: string;
-    code: string;
-    flag: string;
-}
+import type { TeamInfo } from '../data/groups';
+import { getFlagUrl } from '../lib/flags';
 
 interface GroupHeaderProps {
     groupLetter: string;
-    teams: Team[];
+    teams: TeamInfo[];
+    badge?: string;
+    badgeType?: 'host' | 'death';
 }
 
-export const GroupHeader: React.FC<GroupHeaderProps> = ({ groupLetter, teams }) => {
+export const GroupHeader: React.FC<GroupHeaderProps> = ({ groupLetter, teams, badge, badgeType }) => {
+    const isDeath = badgeType === 'death';
+
     return (
-        <div className="mb-16 animate-breathe-in">
-            <div className="flex items-center gap-3 mb-3">
-                <span className="text-[10px] tracking-[0.3em] text-[var(--emerald)] uppercase font-[500] font-sans">Group Stage</span>
-                <div className="h-[1px] flex-1 bg-gradient-to-r from-[var(--emerald)]/20 to-transparent" />
+        <header className="mb-14 animate-in">
+            <div
+                className="text-[13px] uppercase tracking-[0.05em] mb-4"
+                style={{ fontFamily: 'var(--font-ui)', fontWeight: 800, color: 'var(--brand-red)' }}
+            >
+                World Cup 2026 · Group Stage
             </div>
-            <h1 className="text-[clamp(48px,10vw,80px)] font-sans font-[200] leading-[0.9] mb-10 tracking-tight">
-                Group <span className="text-[var(--emerald)]">{groupLetter}</span>
-            </h1>
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 stagger">
-                {teams.map((team) => (
-                    <div
-                        key={team.code}
-                        className="flex items-center gap-3 px-4 py-3 rounded-[var(--radius-md)] bg-white/[0.02] border border-white/[0.04] hover:border-white/[0.08] transition-colors"
+
+            <div className="flex items-baseline gap-4 mb-3">
+                <h1
+                    className="leading-[1.08] tracking-[-0.02em]"
+                    style={{
+                        fontFamily: 'var(--font-prose)',
+                        fontSize: 'clamp(36px, 6vw, 56px)',
+                        fontWeight: 700,
+                        color: 'var(--gray-900)',
+                    }}
+                >
+                    Group {groupLetter}
+                </h1>
+                {badge && (
+                    <span
+                        className="text-[11px] uppercase tracking-[0.05em] px-2 py-1"
+                        style={{
+                            fontWeight: 800,
+                            background: isDeath ? 'var(--brand-red-dark)' : 'var(--host-bg)',
+                            border: isDeath ? 'none' : '1px solid var(--host-border)',
+                            color: isDeath ? '#fff' : 'var(--host-text)',
+                        }}
                     >
-                        <span className="text-2xl leading-none">{team.flag}</span>
-                        <div>
-                            <div className="text-[10px] text-[var(--silver)] uppercase tracking-[0.15em] leading-none mb-0.5 font-mono">{team.code}</div>
-                            <div className="text-[13px] font-[450] text-[var(--ivory)] font-sans">{team.name}</div>
-                        </div>
-                    </div>
-                ))}
+                        {badge}
+                    </span>
+                )}
             </div>
-        </div>
+
+            {/* Team list inline */}
+            <div className="flex flex-wrap items-center gap-5 mb-8">
+                {teams.map((team) => {
+                    const flagUrl = getFlagUrl(team.code);
+                    return (
+                        <div key={team.code} className="flex items-center gap-2">
+                            {flagUrl ? (
+                                <img
+                                    src={flagUrl}
+                                    alt={team.name}
+                                    className="w-6 h-4 object-cover"
+                                    style={{ boxShadow: '0 0 0 1px rgba(0,0,0,0.1) inset' }}
+                                />
+                            ) : (
+                                <div
+                                    className="w-6 h-4 flex items-center justify-center text-[8px]"
+                                    style={{
+                                        background: 'var(--gray-100)',
+                                        border: '1px dashed var(--gray-300)',
+                                        color: 'var(--gray-500)',
+                                    }}
+                                >
+                                    ?
+                                </div>
+                            )}
+                            <span
+                                className="text-base"
+                                style={{ fontFamily: 'var(--font-ui)', fontWeight: 600, color: 'var(--gray-900)' }}
+                            >
+                                {team.name}
+                            </span>
+                        </div>
+                    );
+                })}
+            </div>
+
+            <div
+                className="py-4 border-t border-b flex flex-wrap items-center gap-3"
+                style={{
+                    borderColor: 'var(--gray-300)',
+                    fontFamily: 'var(--font-ui)',
+                    fontSize: '13px',
+                    color: 'var(--gray-500)',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.04em',
+                }}
+            >
+                <span>By <strong style={{ color: 'var(--gray-900)', fontWeight: 800 }}>The Data Desk</strong></span>
+                <span style={{ color: 'var(--gray-300)' }}>|</span>
+                <span>February 28, 2026</span>
+            </div>
+        </header>
     );
 };

@@ -1,31 +1,105 @@
 import React from 'react';
+import { getFlagUrl } from '../lib/flags';
 
 interface MatchRowProps {
     homeTeam: string;
+    homeCode?: string;
     awayTeam: string;
+    awayCode?: string;
     kickoff: string;
     venue: string;
+    matchNumber?: number;
 }
 
-export const MatchRow: React.FC<MatchRowProps> = ({ homeTeam, awayTeam, kickoff, venue }) => {
-    const date = new Date(kickoff);
-    const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
-    const monthDay = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-    const time = date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZoneName: 'short' });
+function formatMatchDate(iso: string): string {
+    const d = new Date(iso);
+    return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+}
+
+function formatMatchTime(iso: string): string {
+    const d = new Date(iso);
+    return d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZoneName: 'short' });
+}
+
+export const MatchRow: React.FC<MatchRowProps> = ({
+    homeTeam,
+    homeCode,
+    awayTeam,
+    awayCode,
+    kickoff,
+    venue,
+    matchNumber,
+}) => {
+    const homeFlag = homeCode ? getFlagUrl(homeCode) : null;
+    const awayFlag = awayCode ? getFlagUrl(awayCode) : null;
 
     return (
-        <div className="flex items-center gap-4 py-4 border-b border-white/[0.04] last:border-0 group hover:bg-white/[0.01] -mx-4 px-4 rounded-lg transition-colors">
-            <div className="w-20 shrink-0">
-                <div className="text-[11px] text-[var(--mist)] font-sans">{dayName}, {monthDay}</div>
-                <div className="text-[11px] font-mono text-[var(--silver)]">{time}</div>
+        <div
+            className="flex items-center justify-between py-4 transition-colors hover:bg-[var(--gray-50)]"
+            style={{ borderBottom: '1px solid var(--gray-200)' }}
+        >
+            <div className="flex items-center gap-4 flex-1 min-w-0">
+                {matchNumber != null && (
+                    <span
+                        className="text-xs w-6 text-center flex-shrink-0"
+                        style={{ fontFamily: 'var(--font-data)', fontWeight: 700, color: 'var(--gray-500)' }}
+                    >
+                        M{matchNumber}
+                    </span>
+                )}
+                <div className="flex items-center gap-2 min-w-0">
+                    {homeFlag && (
+                        <img src={homeFlag} alt="" className="w-5 h-3.5 object-cover flex-shrink-0"
+                            style={{ boxShadow: '0 0 0 1px rgba(0,0,0,0.1) inset' }} />
+                    )}
+                    <span
+                        className="text-sm truncate"
+                        style={{ fontFamily: 'var(--font-ui)', fontWeight: 600, color: 'var(--gray-900)' }}
+                    >
+                        {homeTeam}
+                    </span>
+                    <span
+                        className="text-xs mx-1"
+                        style={{ color: 'var(--gray-500)' }}
+                    >
+                        v
+                    </span>
+                    {awayFlag && (
+                        <img src={awayFlag} alt="" className="w-5 h-3.5 object-cover flex-shrink-0"
+                            style={{ boxShadow: '0 0 0 1px rgba(0,0,0,0.1) inset' }} />
+                    )}
+                    <span
+                        className="text-sm truncate"
+                        style={{ fontFamily: 'var(--font-ui)', fontWeight: 600, color: 'var(--gray-900)' }}
+                    >
+                        {awayTeam}
+                    </span>
+                </div>
             </div>
-            <div className="flex-1 flex items-center gap-3">
-                <span className="text-[14px] font-sans font-[450] text-[var(--ivory)]">{homeTeam}</span>
-                <span className="text-[var(--iron)] text-[10px] uppercase font-[600] tracking-[0.15em] font-sans">v</span>
-                <span className="text-[14px] font-sans font-[450] text-[var(--ivory)]">{awayTeam}</span>
-            </div>
-            <div className="hidden sm:block text-right">
-                <div className="text-[11px] text-[var(--silver)] font-sans">{venue}</div>
+
+            <div className="flex items-center gap-4 flex-shrink-0 text-right">
+                <div className="hidden sm:block">
+                    <span
+                        className="text-xs"
+                        style={{ fontFamily: 'var(--font-ui)', fontWeight: 500, color: 'var(--gray-500)' }}
+                    >
+                        {venue}
+                    </span>
+                </div>
+                <div className="text-right">
+                    <div
+                        className="text-xs"
+                        style={{ fontFamily: 'var(--font-data)', fontWeight: 600, color: 'var(--gray-900)' }}
+                    >
+                        {formatMatchDate(kickoff)}
+                    </div>
+                    <div
+                        className="text-[11px]"
+                        style={{ fontFamily: 'var(--font-data)', fontWeight: 500, color: 'var(--gray-500)' }}
+                    >
+                        {formatMatchTime(kickoff)}
+                    </div>
+                </div>
             </div>
         </div>
     );

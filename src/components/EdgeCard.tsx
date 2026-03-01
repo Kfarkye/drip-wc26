@@ -15,10 +15,10 @@ interface EdgeCardProps {
     link?: string;
 }
 
-const confidenceColor: Record<string, string> = {
-    high: 'text-[var(--emerald)] border-[var(--emerald)]/20 bg-[var(--emerald)]/[0.06]',
-    medium: 'text-[var(--bone)] border-[var(--bone)]/15 bg-white/[0.03]',
-    low: 'text-[var(--silver)] border-white/[0.06] bg-white/[0.02]',
+const confidenceStyles: Record<string, { bg: string; border: string; text: string }> = {
+    high: { bg: 'rgba(204,0,0,0.06)', border: 'var(--brand-red)', text: 'var(--brand-red)' },
+    medium: { bg: 'var(--gray-50)', border: 'var(--gray-800)', text: 'var(--gray-800)' },
+    low: { bg: 'var(--gray-50)', border: 'var(--gray-300)', text: 'var(--gray-500)' },
 };
 
 export const EdgeCard: React.FC<EdgeCardProps> = ({
@@ -34,33 +34,65 @@ export const EdgeCard: React.FC<EdgeCardProps> = ({
     volume,
     link,
 }) => {
+    const cStyle = confidenceStyles[confidence];
+
     const card = (
-        <div className="relative overflow-hidden rounded-[var(--radius-lg)] bg-[var(--card-bg)] border border-[var(--card-border)] p-6 transition-all duration-300 hover:border-white/[0.08] hover:shadow-[0_8px_32px_-8px_rgba(0,0,0,0.5)] group">
+        <div
+            className="border overflow-hidden transition-all duration-150 hover:shadow-md group"
+            style={{
+                borderColor: 'var(--gray-300)',
+                borderTopWidth: '4px',
+                borderTopColor: edgePercentage >= 3 ? 'var(--brand-red)' : 'var(--gray-800)',
+                background: 'var(--white)',
+            }}
+        >
             {/* Header */}
-            <div className="flex justify-between items-start mb-5">
-                <div className="text-[15px] font-[400] tracking-tight font-sans text-[var(--ivory)]">
+            <div
+                className="flex items-start justify-between px-5 pt-5 pb-3"
+            >
+                <div
+                    className="text-[15px] tracking-tight leading-snug"
+                    style={{ fontFamily: 'var(--font-ui)', fontWeight: 600, color: 'var(--gray-900)' }}
+                >
                     {marketName}
                 </div>
                 {confidence && (
-                    <span className={`px-2 py-0.5 rounded text-[9px] font-[500] tracking-[0.12em] uppercase border ${confidenceColor[confidence]}`}>
+                    <span
+                        className="text-[9px] uppercase tracking-[0.08em] px-1.5 py-0.5 flex-shrink-0 ml-3"
+                        style={{
+                            fontWeight: 800,
+                            background: cStyle.bg,
+                            border: `1px solid ${cStyle.border}`,
+                            color: cStyle.text,
+                        }}
+                    >
                         {confidence}
                     </span>
                 )}
             </div>
 
-            {/* Odds comparison */}
-            <div className="space-y-0 mb-6">
-                {/* Sportsbook row */}
-                <div className="flex items-center justify-between py-3 border-b border-white/[0.04]">
+            {/* Odds comparison rows */}
+            <div className="px-5">
+                <div
+                    className="flex items-center justify-between py-3"
+                    style={{ borderBottom: '1px solid var(--gray-200)' }}
+                >
                     <div className="flex items-center gap-2">
-                        <span className="w-[3px] h-3 rounded-full bg-[var(--emerald)]/40" />
-                        <span className="text-[13px] font-sans text-[var(--mist)]">
+                        <span
+                            className="w-[3px] h-3 rounded-full"
+                            style={{ background: 'var(--brand-red)' }}
+                        />
+                        <span
+                            className="text-[13px]"
+                            style={{ fontFamily: 'var(--font-ui)', fontWeight: 500, color: 'var(--gray-500)' }}
+                        >
                             {sportsbookLink ? (
                                 <a
                                     href={sportsbookLink}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="hover:text-[var(--ivory)] transition-colors"
+                                    className="hover:underline"
+                                    style={{ color: 'var(--gray-500)' }}
                                     onClick={(e) => e.stopPropagation()}
                                 >
                                     {sportsbookName}
@@ -68,20 +100,31 @@ export const EdgeCard: React.FC<EdgeCardProps> = ({
                             ) : sportsbookName}
                         </span>
                     </div>
-                    <span className="font-mono text-[14px] text-[var(--ivory)] tracking-tight">{sportsbookOdds}</span>
+                    <span
+                        className="text-sm tracking-tight"
+                        style={{ fontFamily: 'var(--font-data)', fontWeight: 700, color: 'var(--gray-900)' }}
+                    >
+                        {sportsbookOdds}
+                    </span>
                 </div>
 
-                {/* Prediction market row */}
                 <div className="flex items-center justify-between py-3">
                     <div className="flex items-center gap-2">
-                        <span className="w-[3px] h-3 rounded-full bg-white/10" />
-                        <span className="text-[13px] font-sans text-[var(--mist)]">
+                        <span
+                            className="w-[3px] h-3 rounded-full"
+                            style={{ background: 'var(--gray-300)' }}
+                        />
+                        <span
+                            className="text-[13px]"
+                            style={{ fontFamily: 'var(--font-ui)', fontWeight: 500, color: 'var(--gray-500)' }}
+                        >
                             {predictionLink ? (
                                 <a
                                     href={predictionLink}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="hover:text-[var(--ivory)] transition-colors"
+                                    className="hover:underline"
+                                    style={{ color: 'var(--gray-500)' }}
                                     onClick={(e) => e.stopPropagation()}
                                 >
                                     {predictionName}
@@ -89,28 +132,62 @@ export const EdgeCard: React.FC<EdgeCardProps> = ({
                             ) : predictionName}
                         </span>
                     </div>
-                    <span className="font-mono text-[14px] text-[var(--ivory)] tracking-tight">{predictionPrice}</span>
+                    <span
+                        className="text-sm tracking-tight"
+                        style={{ fontFamily: 'var(--font-data)', fontWeight: 700, color: 'var(--gray-900)' }}
+                    >
+                        {predictionPrice}
+                    </span>
                 </div>
             </div>
 
-            {/* Edge value — the hero number */}
-            <div className="flex flex-col items-center justify-center pt-2 pb-1">
+            {/* Edge hero number */}
+            <div
+                className="flex flex-col items-center py-5"
+                style={{ background: 'var(--gray-50)', borderTop: '1px solid var(--gray-200)' }}
+            >
                 <div className="flex items-baseline gap-0.5">
-                    <span className={`font-mono font-[400] leading-none text-[clamp(36px,8vw,48px)] tracking-tight ${
-                        edgePercentage >= 3 ? 'text-[var(--emerald)]' : 'text-[var(--bone)]'
-                    }`}>
+                    <span
+                        className="leading-none"
+                        style={{
+                            fontFamily: 'var(--font-data)',
+                            fontSize: 'clamp(36px, 8vw, 48px)',
+                            fontWeight: 800,
+                            color: edgePercentage >= 3 ? 'var(--brand-red)' : 'var(--gray-900)',
+                        }}
+                    >
                         {edgePercentage.toFixed(1)}
                     </span>
-                    <span className={`text-xl font-mono font-[300] ${
-                        edgePercentage >= 3 ? 'text-[var(--emerald)]/60' : 'text-[var(--bone)]/40'
-                    }`}>%</span>
+                    <span
+                        className="text-xl"
+                        style={{
+                            fontFamily: 'var(--font-data)',
+                            fontWeight: 600,
+                            color: 'var(--gray-500)',
+                        }}
+                    >
+                        %
+                    </span>
                 </div>
-                <div className="mt-2 flex items-center gap-2 text-[9px] tracking-[0.15em] text-[var(--silver)] uppercase font-sans">
-                    <span>gap</span>
+                <div className="mt-1.5 flex items-center gap-2">
+                    <span
+                        className="text-[9px] uppercase tracking-[0.12em]"
+                        style={{ fontFamily: 'var(--font-ui)', fontWeight: 800, color: 'var(--gray-500)' }}
+                    >
+                        gap
+                    </span>
                     {volume != null && volume > 0 && (
                         <>
-                            <span className="w-[3px] h-[3px] rounded-full bg-white/10" />
-                            <span className="text-[var(--iron)]">${(volume / 1000).toFixed(0)}k vol</span>
+                            <span
+                                className="w-[3px] h-[3px] rounded-full"
+                                style={{ background: 'var(--gray-300)' }}
+                            />
+                            <span
+                                className="text-[10px]"
+                                style={{ fontFamily: 'var(--font-data)', fontWeight: 600, color: 'var(--gray-500)' }}
+                            >
+                                ${(volume / 1000).toFixed(0)}k vol
+                            </span>
                         </>
                     )}
                 </div>
@@ -119,12 +196,7 @@ export const EdgeCard: React.FC<EdgeCardProps> = ({
     );
 
     if (link) {
-        return (
-            <Link to={link} className="block">
-                {card}
-            </Link>
-        );
+        return <Link to={link} className="block">{card}</Link>;
     }
-
     return card;
 };

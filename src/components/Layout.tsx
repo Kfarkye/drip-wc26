@@ -8,11 +8,9 @@ interface LayoutProps {
 
 export const Layout: React.FC<LayoutProps> = ({ children }) => {
     return (
-        <div className="min-h-screen bg-[var(--void)] grain-overlay vignette">
+        <div className="min-h-screen bg-white">
             <Nav />
-            <main className="max-w-6xl mx-auto px-6 py-12">
-                {children}
-            </main>
+            <main>{children}</main>
             <Footer />
         </div>
     );

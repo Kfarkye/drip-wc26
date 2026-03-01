@@ -1,44 +1,68 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 
-const navLinks = [
-    { label: 'Hub', path: '/' },
-    { label: 'Group D', path: '/group/d' },
-];
-
 export const Nav: React.FC = () => {
     const location = useLocation();
+    const isHome = location.pathname === '/';
 
     return (
-        <nav className="border-b border-[var(--card-border)] bg-[var(--void)]/90 backdrop-blur-2xl sticky top-0 z-50">
-            <div className="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
+        <nav className="border-t-[6px] border-t-[var(--gray-900)] border-b border-b-[var(--gray-200)] bg-white sticky top-0 z-50">
+            <div className="max-w-[1040px] mx-auto px-5 h-14 flex items-center justify-between">
                 <div className="flex items-center gap-8">
-                    <Link to="/" className="flex items-baseline gap-0.5 group">
-                        <span className="text-[10px] font-sans lowercase text-[var(--mist)] group-hover:text-[var(--bone)] transition-colors">the</span>
-                        <span className="text-[26px] font-serif italic font-[300] text-[var(--bone)] group-hover:text-[var(--white)] transition-colors leading-none">Drip</span>
+                    <Link to="/" className="flex items-baseline gap-2">
+                        <span
+                            className="text-xl tracking-[-0.01em] uppercase"
+                            style={{ fontFamily: 'var(--font-data)', fontWeight: 800, color: 'var(--gray-900)' }}
+                        >
+                            The Drip
+                        </span>
+                        <span
+                            className="text-sm tracking-[-0.01em]"
+                            style={{ fontFamily: 'var(--font-data)', fontWeight: 700, color: 'var(--brand-red)' }}
+                        >
+                            // Edge Intel
+                        </span>
                     </Link>
+
                     <div className="hidden md:flex gap-6">
-                        {navLinks.map(({ label, path }) => {
-                            const isActive = location.pathname === path;
+                        <Link
+                            to="/"
+                            className="text-[13px] transition-colors"
+                            style={{
+                                fontFamily: 'var(--font-ui)',
+                                fontWeight: isHome ? 700 : 500,
+                                color: isHome ? 'var(--gray-900)' : 'var(--gray-500)',
+                            }}
+                        >
+                            Markets
+                        </Link>
+                        {['A','B','C','D','E','F','G','H','I','J','K','L'].map(letter => {
+                            const isActive = location.pathname === `/group/${letter.toLowerCase()}`;
                             return (
                                 <Link
-                                    key={path}
-                                    to={path}
-                                    className={`text-[13px] font-sans transition-colors ${
-                                        isActive
-                                            ? 'text-[var(--ivory)] font-[500]'
-                                            : 'text-[var(--silver)] hover:text-[var(--bone)]'
-                                    }`}
+                                    key={letter}
+                                    to={`/group/${letter.toLowerCase()}`}
+                                    className="text-[13px] transition-colors hover:text-[var(--gray-900)]"
+                                    style={{
+                                        fontFamily: 'var(--font-ui)',
+                                        fontWeight: isActive ? 700 : 500,
+                                        color: isActive ? 'var(--gray-900)' : 'var(--gray-500)',
+                                    }}
                                 >
-                                    {label}
+                                    {letter}
                                 </Link>
                             );
                         })}
                     </div>
                 </div>
+
                 <div className="flex items-center gap-3">
-                    <div className="h-[6px] w-[6px] rounded-full bg-[var(--emerald)] shadow-[0_0_8px_rgba(0,201,120,0.4)]" />
-                    <span className="text-[10px] tracking-[0.15em] text-[var(--silver)] uppercase font-mono">Live</span>
+                    <span
+                        className="text-[11px] uppercase tracking-[0.06em]"
+                        style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, color: 'var(--gray-500)' }}
+                    >
+                        Feb 28, 2026
+                    </span>
                 </div>
             </div>
         </nav>

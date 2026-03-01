@@ -1,198 +1,440 @@
 import React from 'react';
+import { useParams, Link, Navigate } from 'react-router-dom';
 import { Layout } from '../components/Layout';
 import { GroupHeader } from '../components/GroupHeader';
 import { EdgeCard } from '../components/EdgeCard';
 import { MatchRow } from '../components/MatchRow';
 import { SchemaScript } from '../components/SchemaScript';
 import { generateGroupSchema } from '../lib/schema';
-import { groupD } from '../data/groups';
+import { allGroups } from '../data/groups';
+import { getFlagUrl } from '../lib/flags';
+
+/* ── Group metadata for editorial treatments ── */
+const GROUP_META: Record<string, {
+    badge?: string;
+    badgeType?: 'host' | 'death';
+    analysis: string;
+    edges?: Array<{
+        market: string;
+        sbName: string;
+        sbOdds: string;
+        pmName: string;
+        pmPrice: string;
+        edge: number;
+        confidence: 'high' | 'medium' | 'low';
+        volume: number;
+        link: string;
+    }>;
+}> = {
+    A: {
+        badge: 'Host Nation', badgeType: 'host',
+        analysis: 'Mexico\'s high-altitude advantage at the Azteca is the strongest of any host, heavily favoring progression. The South Korea matchup in Monterrey is the group\'s swing fixture.',
+    },
+    B: {
+        badge: 'Host Nation', badgeType: 'host',
+        analysis: 'If Italy wins their playoff bracket to enter this group, the math drastically changes against the Canadian hosts. Switzerland profiles as the most reliable group-stage nation in recent tournament history.',
+    },
+    C: {
+        badge: 'Group of Death', badgeType: 'death',
+        analysis: 'Brazil vs Morocco at MetLife Stadium (Jun 13) is the undisputed heavyweight fixture of the group stage. Morocco\'s 2022 semifinal run proved their defensive structure is real.',
+    },
+    D: {
+        badge: 'Host Nation', badgeType: 'host',
+        analysis: 'Highly favorable draw for the USMNT. Pochettino avoids elite European squads while playing securely on home soil. The opening match against Paraguay at SoFi sets the tournament tone.',
+        edges: [
+            { market: 'USA to Win Group D', sbName: 'DraftKings', sbOdds: '+125', pmName: 'Kalshi', pmPrice: '45¢', edge: 0.6, confidence: 'low', volume: 124000, link: '/edges/usa-to-win-group-d' },
+            { market: 'Paraguay to Win Group D', sbName: 'DraftKings', sbOdds: '+800', pmName: 'Kalshi', pmPrice: '10¢', edge: 1.1, confidence: 'low', volume: 12000, link: '/edges/paraguay-to-win-group-d' },
+            { market: 'Australia to Win Group D', sbName: 'DraftKings', sbOdds: '+600', pmName: 'Kalshi', pmPrice: '14¢', edge: 2.4, confidence: 'low', volume: 8500, link: '/edges/australia-to-win-group-d' },
+        ],
+    },
+    E: {
+        analysis: 'Germany desperately seeks redemption after back-to-back group stage exits in 2018 and 2022. Curaçao makes a historic World Cup debut as the smallest nation (pop. 150K) in the field.',
+    },
+    F: {
+        badge: 'Dangerous', badgeType: 'death',
+        analysis: 'Japan stunned both Germany and Spain in 2022 groups, making this an extremely uncomfortable draw for the Netherlands. The UEFA Playoff B winner could add Austria or Ukraine to the mix.',
+    },
+    G: {
+        analysis: 'Belgium\'s golden generation core is running on fumes, making this one of the most wide-open groups. Egypt\'s Salah is likely playing his final World Cup.',
+    },
+    H: {
+        analysis: 'Spain holds 18.5% of the total betting handle. Lamine Yamal will be 18 years old during the tournament. Uruguay brings legitimate knockout-stage pedigree with Núñez and Valverde.',
+    },
+    I: {
+        badge: 'Group of Death', badgeType: 'death',
+        analysis: 'Mbappé vs. Haaland. This generational collision — France vs Norway — is projected to be the most-watched match of the group stage. Senegal adds genuine dark-horse quality.',
+    },
+    J: {
+        analysis: 'Messi turns 39 during the tournament. If he plays, every Argentina match is the hottest ticket on the continent. Austria showed strong form at Euro 2024.',
+    },
+    K: {
+        badge: 'Dangerous', badgeType: 'death',
+        analysis: 'Aside from Ronaldo\'s swan song, Colombia represents legitimate, battle-tested knockout-stage quality after their 2024 Copa América final run.',
+    },
+    L: {
+        badge: 'Group of Death', badgeType: 'death',
+        analysis: 'England vs Croatia in Dallas acts as a brutal opening act. Croatia reached the 2018 final and 2022 semifinal. The consensus Group of Death.',
+    },
+};
+
+/* ── Outright winner odds per team (for the group table) ── */
+const TEAM_ODDS: Record<string, { odds: string; implied: string; pct: number; isLongshot?: boolean }> = {
+    MEX: { odds: '+6600', implied: '1.5%', pct: 10 },
+    KOR: { odds: '+15000', implied: '0.7%', pct: 0, isLongshot: true },
+    RSA: { odds: '+50000', implied: '<0.2%', pct: 0, isLongshot: true },
+    SUI: { odds: '+10000', implied: '1.0%', pct: 7 },
+    CAN: { odds: '+15000', implied: '0.7%', pct: 0, isLongshot: true },
+    QAT: { odds: '+100000', implied: '<0.1%', pct: 0, isLongshot: true },
+    BRA: { odds: '+750', implied: '10.5%', pct: 70 },
+    MAR: { odds: '+5000', implied: '2.0%', pct: 13 },
+    SCO: { odds: '+50000', implied: '<0.2%', pct: 0, isLongshot: true },
+    HAI: { odds: '+100000', implied: '<0.1%', pct: 0, isLongshot: true },
+    USA: { odds: '+2500', implied: '3.8%', pct: 25 },
+    PAR: { odds: '+25000', implied: '<0.4%', pct: 0, isLongshot: true },
+    AUS: { odds: '+25000', implied: '<0.4%', pct: 0, isLongshot: true },
+    GER: { odds: '+1000', implied: '7.1%', pct: 47 },
+    CIV: { odds: '+25000', implied: '<0.4%', pct: 0, isLongshot: true },
+    ECU: { odds: '+25000', implied: '<0.4%', pct: 0, isLongshot: true },
+    CUW: { odds: '+100000', implied: '<0.1%', pct: 0, isLongshot: true },
+    NED: { odds: '+1400', implied: '5.3%', pct: 35 },
+    JPN: { odds: '+8000', implied: '1.2%', pct: 8 },
+    TUN: { odds: '+50000', implied: '<0.2%', pct: 0, isLongshot: true },
+    BEL: { odds: '+3000', implied: '2.5%', pct: 17 },
+    EGY: { odds: '+25000', implied: '<0.4%', pct: 0, isLongshot: true },
+    IRN: { odds: '+50000', implied: '<0.2%', pct: 0, isLongshot: true },
+    NZL: { odds: '+100000', implied: '<0.1%', pct: 0, isLongshot: true },
+    ESP: { odds: '+450', implied: '15.0%', pct: 100 },
+    URU: { odds: '+4000', implied: '2.4%', pct: 16 },
+    KSA: { odds: '+50000', implied: '<0.2%', pct: 0, isLongshot: true },
+    CPV: { odds: '+100000', implied: '<0.1%', pct: 0, isLongshot: true },
+    FRA: { odds: '+750', implied: '10.5%', pct: 70 },
+    NOR: { odds: '+10000', implied: '1.0%', pct: 7 },
+    SEN: { odds: '+15000', implied: '0.7%', pct: 0, isLongshot: true },
+    ARG: { odds: '+800', implied: '12.3%', pct: 82 },
+    AUT: { odds: '+15000', implied: '0.7%', pct: 0, isLongshot: true },
+    ALG: { odds: '+50000', implied: '<0.2%', pct: 0, isLongshot: true },
+    JOR: { odds: '+100000', implied: '<0.1%', pct: 0, isLongshot: true },
+    POR: { odds: '+1200', implied: '6.3%', pct: 42 },
+    COL: { odds: '+5000', implied: '2.0%', pct: 13 },
+    UZB: { odds: '+100000', implied: '<0.1%', pct: 0, isLongshot: true },
+    ENG: { odds: '+550', implied: '13.2%', pct: 88 },
+    CRO: { odds: '+5000', implied: '2.0%', pct: 13 },
+    GHA: { odds: '+50000', implied: '<0.2%', pct: 0, isLongshot: true },
+    PAN: { odds: '+100000', implied: '<0.1%', pct: 0, isLongshot: true },
+};
 
 export const GroupPage: React.FC = () => {
+    const { letter } = useParams<{ letter: string }>();
+    const upperLetter = letter?.toUpperCase() ?? '';
+    const group = allGroups[upperLetter];
+
+    if (!group) return <Navigate to="/" replace />;
+
+    const meta = GROUP_META[upperLetter] || { analysis: '' };
+
     const faqs = [
         {
-            question: "Who will win World Cup 2026 Group D?",
-            answer: "The United States is favored to win Group D at +125 odds (44.4% implied probability) on major sportsbooks. Prediction markets price USA at 45%, suggesting alignment between books and markets. Paraguay, Australia, and the UEFA Playoff C winner round out the group."
+            question: `Who will win World Cup 2026 Group ${upperLetter}?`,
+            answer: `${group.teams[0].name} is the group favorite based on current sportsbook odds. See the odds table above for full probabilities across all four teams.`,
         },
         {
-            question: "What are the odds for USA vs Paraguay at the 2026 World Cup?",
-            answer: "USA vs Paraguay is scheduled for June 12, 2026 at SoFi Stadium in Inglewood, California. DraftKings lists USA at approximately -160, Paraguay at +380, and the draw at +280. Prediction markets suggest USA has a 58% chance of winning the opening match."
+            question: `Where is World Cup 2026 Group ${upperLetter} being played?`,
+            answer: group.matches.length > 0
+                ? `Group ${upperLetter} matches are hosted at ${[...new Set(group.matches.map(m => `${m.venue.name}, ${m.venue.city}`))].join('; ')}.`
+                : `Venue information will be confirmed closer to the tournament.`,
         },
-        {
-            question: "Where is World Cup 2026 Group D being played?",
-            answer: "Group D matches are hosted across four American venues: SoFi Stadium in Inglewood, California; Lumen Field in Seattle, Washington; Mercedes-Benz Stadium in Atlanta, Georgia; and Lincoln Financial Field in Philadelphia, Pennsylvania."
-        },
-        {
-            question: "What is a cross-ecosystem edge?",
-            answer: "A cross-ecosystem edge is the mathematical gap between what a sportsbook implies a team's probability is and what an independent pricing source like a prediction market implies. The gap represents a measurable discrepancy between two pricing mechanisms for the same outcome."
-        }
     ];
 
-    const groupSchema = generateGroupSchema(groupD, faqs);
+    const groupSchema = generateGroupSchema(group, faqs);
+
+    // Adjacent group nav
+    const letters = 'ABCDEFGHIJKL'.split('');
+    const currentIdx = letters.indexOf(upperLetter);
+    const prevLetter = currentIdx > 0 ? letters[currentIdx - 1] : null;
+    const nextLetter = currentIdx < letters.length - 1 ? letters[currentIdx + 1] : null;
 
     return (
         <Layout>
             <SchemaScript schema={groupSchema} />
 
-            <GroupHeader groupLetter={groupD.letter} teams={groupD.teams} />
+            <div className="px-5 pt-12 pb-20">
+                <div className="max-w-[660px] mx-auto">
 
-            {/* Overview */}
-            <section className="mb-20">
-                <div className="flex items-center gap-3 mb-6">
-                    <div className="h-[1px] w-8 bg-[var(--emerald)]/30" />
-                    <span className="text-[10px] tracking-[0.2em] text-[var(--emerald)] uppercase font-[500] font-sans">
-                        Group Winner Markets
-                    </span>
-                </div>
+                    {/* Breadcrumb */}
+                    <div className="mb-8">
+                        <Link
+                            to="/"
+                            className="text-[13px] hover:underline inline-flex items-center gap-1"
+                            style={{ fontFamily: 'var(--font-ui)', fontWeight: 600, color: 'var(--gray-500)' }}
+                        >
+                            ← Markets Hub
+                        </Link>
+                    </div>
 
-                <p className="text-[15px] text-[var(--mist)] font-sans leading-relaxed mb-10 max-w-2xl">
-                    The United States enters as Group D favorites at +125 on DraftKings, implying 44.4% win probability.
-                    Kalshi prices USA group winners at 45¢, implying 45%. The narrow gap reflects tight consensus between
-                    sportsbook and prediction market pricing on the host nation.
-                </p>
-
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 stagger">
-                    <EdgeCard
-                        marketName="USA to Win Group D"
-                        sportsbookName="DraftKings"
-                        sportsbookOdds="+125"
-                        sportsbookLink="https://www.draftkings.com"
-                        predictionName="Kalshi"
-                        predictionPrice="45¢"
-                        predictionLink="https://www.kalshi.com"
-                        edgePercentage={0.6}
-                        confidence="low"
-                        volume={124000}
-                        link="/edges/usa-to-win-group-d"
+                    <GroupHeader
+                        groupLetter={upperLetter}
+                        teams={group.teams}
+                        badge={meta.badge}
+                        badgeType={meta.badgeType}
                     />
-                    <EdgeCard
-                        marketName="Paraguay to Win Group D"
-                        sportsbookName="DraftKings"
-                        sportsbookOdds="+800"
-                        sportsbookLink="https://www.draftkings.com"
-                        predictionName="Kalshi"
-                        predictionPrice="10¢"
-                        predictionLink="https://www.kalshi.com"
-                        edgePercentage={1.1}
-                        confidence="low"
-                        volume={12000}
-                        link="/edges/paraguay-to-win-group-d"
-                    />
-                    <EdgeCard
-                        marketName="Australia to Win Group D"
-                        sportsbookName="DraftKings"
-                        sportsbookOdds="+600"
-                        sportsbookLink="https://www.draftkings.com"
-                        predictionName="Kalshi"
-                        predictionPrice="14¢"
-                        predictionLink="https://www.kalshi.com"
-                        edgePercentage={2.4}
-                        confidence="low"
-                        volume={8500}
-                        link="/edges/australia-to-win-group-d"
-                    />
-                </div>
-            </section>
 
-            {/* USA Opener */}
-            <section className="mb-20">
-                <div className="flex items-center gap-3 mb-6">
-                    <div className="h-[1px] w-8 bg-white/10" />
-                    <span className="text-[10px] tracking-[0.2em] text-[var(--silver)] uppercase font-[500] font-sans">
-                        Opening Match
-                    </span>
-                </div>
+                    {/* ═══ Analysis ═══ */}
+                    <section className="mb-14 prose-editorial">
+                        <p>{meta.analysis}</p>
+                    </section>
 
-                <h2 className="text-2xl font-sans font-[200] text-[var(--ivory)] mb-3">
-                    USA vs Paraguay
-                </h2>
-                <p className="text-[13px] text-[var(--silver)] font-sans mb-1">
-                    Friday, June 12 · 9:00 PM ET · SoFi Stadium, Inglewood
-                </p>
-                <p className="text-[15px] text-[var(--mist)] font-sans leading-relaxed mb-8 max-w-2xl">
-                    DraftKings lists USA at -160 (61.5% implied). Kalshi prices USA to win this match
-                    at 58¢ (58% implied). The 3.5% discrepancy suggests marginal sportsbook overconfidence
-                    in the hosts for the opening fixture.
-                </p>
+                    {/* ═══ Edge Cards (if available) ═══ */}
+                    {meta.edges && meta.edges.length > 0 && (
+                        <section className="mb-14">
+                            <div
+                                className="flex items-baseline justify-between pb-2 mb-6 border-b-[3px]"
+                                style={{ borderColor: 'var(--gray-900)' }}
+                            >
+                                <h3
+                                    className="text-xl uppercase tracking-[-0.02em]"
+                                    style={{ fontFamily: 'var(--font-ui)', fontWeight: 800 }}
+                                >
+                                    Edge Detection
+                                </h3>
+                                <span
+                                    className="text-[13px] uppercase"
+                                    style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, color: 'var(--gray-500)' }}
+                                >
+                                    Book vs Market
+                                </span>
+                            </div>
 
-                <div className="max-w-sm">
-                    <EdgeCard
-                        marketName="USA to Beat Paraguay"
-                        sportsbookName="DraftKings"
-                        sportsbookOdds="-160"
-                        sportsbookLink="https://www.draftkings.com"
-                        predictionName="Kalshi"
-                        predictionPrice="58¢"
-                        predictionLink="https://www.kalshi.com"
-                        edgePercentage={3.5}
-                        confidence="medium"
-                        volume={32000}
-                        link="/edges/par-vs-usa-2026-06-12"
-                    />
-                </div>
-            </section>
+                            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 stagger">
+                                {meta.edges.map((edge) => (
+                                    <EdgeCard
+                                        key={edge.market}
+                                        marketName={edge.market}
+                                        sportsbookName={edge.sbName}
+                                        sportsbookOdds={edge.sbOdds}
+                                        sportsbookLink="https://www.draftkings.com"
+                                        predictionName={edge.pmName}
+                                        predictionPrice={edge.pmPrice}
+                                        predictionLink="https://www.kalshi.com"
+                                        edgePercentage={edge.edge}
+                                        confidence={edge.confidence}
+                                        volume={edge.volume}
+                                        link={edge.link}
+                                    />
+                                ))}
+                            </div>
+                        </section>
+                    )}
 
-            {/* Edge Analysis */}
-            <section className="mb-20">
-                <div className="flex items-center gap-3 mb-6">
-                    <div className="h-[1px] w-8 bg-white/10" />
-                    <span className="text-[10px] tracking-[0.2em] text-[var(--silver)] uppercase font-[500] font-sans">
-                        Edge Analysis
-                    </span>
-                </div>
-
-                <p className="text-[15px] text-[var(--mist)] font-sans leading-relaxed max-w-2xl">
-                    Group D contains a notable host-nation pricing dynamic. The USA group winner market
-                    shows narrow alignment between sportsbook consensus and prediction market pricing,
-                    suggesting the home-crowd betting effect is already priced in. The larger edges in this
-                    group sit on match-level moneylines rather than futures, where sportsbook liability
-                    management creates wider gaps against prediction market order books.
-                </p>
-            </section>
-
-            {/* Match Schedule */}
-            <section className="mb-20">
-                <div className="flex items-center gap-3 mb-6">
-                    <div className="h-[1px] w-8 bg-white/10" />
-                    <span className="text-[10px] tracking-[0.2em] text-[var(--silver)] uppercase font-[500] font-sans">
-                        Match Schedule
-                    </span>
-                </div>
-
-                <div className="rounded-[var(--radius-lg)] bg-[var(--card-bg)] border border-[var(--card-border)] p-4">
-                    {groupD.matches.map((match, i) => (
-                        <MatchRow
-                            key={i}
-                            homeTeam={match.homeTeam.name}
-                            awayTeam={match.awayTeam.name}
-                            kickoff={match.kickoff}
-                            venue={`${match.venue.name}, ${match.venue.city}`}
-                        />
-                    ))}
-                </div>
-            </section>
-
-            {/* FAQ */}
-            <section className="mb-12 border-t border-[var(--card-border)] pt-16">
-                <div className="flex items-center gap-3 mb-10">
-                    <div className="h-[1px] w-8 bg-white/10" />
-                    <span className="text-[10px] tracking-[0.2em] text-[var(--silver)] uppercase font-[500] font-sans">
-                        FAQ
-                    </span>
-                </div>
-
-                <div className="grid md:grid-cols-2 gap-x-12 gap-y-10">
-                    {faqs.map((faq, i) => (
-                        <div key={i}>
-                            <h3 className="text-[14px] text-[var(--ivory)] font-[500] mb-3 font-sans leading-snug">
-                                {faq.question}
+                    {/* ═══ Outright Odds Table ═══ */}
+                    <section className="mb-14">
+                        <div
+                            className="flex items-baseline justify-between pb-2 mb-6 border-b-[3px]"
+                            style={{ borderColor: 'var(--gray-900)' }}
+                        >
+                            <h3
+                                className="text-xl uppercase tracking-[-0.02em]"
+                                style={{ fontFamily: 'var(--font-ui)', fontWeight: 800 }}
+                            >
+                                Outright Winner Odds
                             </h3>
-                            <p className="text-[13px] text-[var(--mist)] leading-relaxed font-sans">
-                                {faq.answer}
-                            </p>
+                            <span
+                                className="text-[13px] uppercase"
+                                style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, color: 'var(--gray-500)' }}
+                            >
+                                Tournament
+                            </span>
                         </div>
-                    ))}
+
+                        <div className="overflow-x-auto">
+                            <table className="sports-table" style={{ minWidth: '440px' }}>
+                                <thead>
+                                    <tr>
+                                        <th>Team</th>
+                                        <th className="text-right">Odds</th>
+                                        <th className="text-right">Implied Win Prob</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {group.teams.map((team, i) => {
+                                        const odds = TEAM_ODDS[team.code];
+                                        const flagUrl = getFlagUrl(team.code);
+                                        const isTop = i === 0;
+
+                                        return (
+                                            <tr key={team.code} className={isTop ? 'top-seed' : ''}>
+                                                <td>
+                                                    <div className="flex items-center gap-3" style={{ fontWeight: 600, whiteSpace: 'nowrap' }}>
+                                                        {flagUrl ? (
+                                                            <img
+                                                                src={flagUrl}
+                                                                alt={team.name}
+                                                                className="w-6 h-4 object-cover"
+                                                                style={{ boxShadow: '0 0 0 1px rgba(0,0,0,0.1) inset' }}
+                                                            />
+                                                        ) : (
+                                                            <div
+                                                                className="w-6 h-4 flex items-center justify-center text-[8px]"
+                                                                style={{ background: 'var(--gray-100)', border: '1px dashed var(--gray-300)', color: 'var(--gray-500)' }}
+                                                            >
+                                                                ?
+                                                            </div>
+                                                        )}
+                                                        <span style={{ fontWeight: isTop ? 800 : 600 }}>{team.name}</span>
+                                                    </div>
+                                                </td>
+                                                <td className="text-right">
+                                                    {odds ? (
+                                                        <span
+                                                            className="text-lg"
+                                                            style={{
+                                                                fontFamily: 'var(--font-data)',
+                                                                fontWeight: isTop ? 800 : 600,
+                                                                fontVariantNumeric: 'tabular-nums',
+                                                                color: isTop ? 'var(--brand-red)' : 'var(--gray-900)',
+                                                            }}
+                                                        >
+                                                            {odds.odds}
+                                                        </span>
+                                                    ) : (
+                                                        <span style={{ color: 'var(--gray-500)' }}>TBD</span>
+                                                    )}
+                                                </td>
+                                                <td className="text-right">
+                                                    {odds ? (
+                                                        <div className="flex items-center justify-end gap-3">
+                                                            <span
+                                                                className="text-base w-14 text-right"
+                                                                style={{
+                                                                    fontFamily: 'var(--font-data)',
+                                                                    fontWeight: 600,
+                                                                    fontVariantNumeric: 'tabular-nums',
+                                                                    color: odds.isLongshot ? 'var(--gray-500)' : 'var(--gray-800)',
+                                                                }}
+                                                            >
+                                                                {odds.implied}
+                                                            </span>
+                                                            {odds.pct > 0 && (
+                                                                <div className="w-[90px] h-1.5 flex-shrink-0" style={{ background: 'var(--gray-200)' }}>
+                                                                    <div
+                                                                        className="h-full"
+                                                                        style={{
+                                                                            width: `${odds.pct}%`,
+                                                                            background: isTop ? 'var(--gray-900)' : 'var(--gray-800)',
+                                                                        }}
+                                                                    />
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    ) : (
+                                                        <span style={{ color: 'var(--gray-500)' }}>—</span>
+                                                    )}
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
+                        </div>
+                    </section>
+
+                    {/* ═══ Match Schedule ═══ */}
+                    <section className="mb-14">
+                        <div
+                            className="flex items-baseline justify-between pb-2 mb-6 border-b-[3px]"
+                            style={{ borderColor: 'var(--gray-900)' }}
+                        >
+                            <h3
+                                className="text-xl uppercase tracking-[-0.02em]"
+                                style={{ fontFamily: 'var(--font-ui)', fontWeight: 800 }}
+                            >
+                                Match Schedule
+                            </h3>
+                            <span
+                                className="text-[13px] uppercase"
+                                style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, color: 'var(--gray-500)' }}
+                            >
+                                {group.matches.length} Matches
+                            </span>
+                        </div>
+
+                        <div>
+                            {group.matches.map((match, i) => (
+                                <MatchRow
+                                    key={i}
+                                    homeTeam={match.homeTeam.name}
+                                    homeCode={match.homeTeam.code}
+                                    awayTeam={match.awayTeam.name}
+                                    awayCode={match.awayTeam.code}
+                                    kickoff={match.kickoff}
+                                    venue={`${match.venue.name}, ${match.venue.city}`}
+                                    matchNumber={match.matchNumber}
+                                />
+                            ))}
+                        </div>
+                    </section>
+
+                    {/* ═══ FAQ ═══ */}
+                    <section className="mb-14 pt-10 border-t" style={{ borderColor: 'var(--gray-300)' }}>
+                        <div
+                            className="text-sm uppercase tracking-[0.04em] mb-8"
+                            style={{ fontFamily: 'var(--font-ui)', fontWeight: 800, color: 'var(--gray-500)' }}
+                        >
+                            Frequently Asked
+                        </div>
+                        <div className="space-y-8">
+                            {faqs.map((faq, i) => (
+                                <div key={i}>
+                                    <h3
+                                        className="text-sm mb-2 leading-snug"
+                                        style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, color: 'var(--gray-900)' }}
+                                    >
+                                        {faq.question}
+                                    </h3>
+                                    <p
+                                        className="text-[15px] leading-relaxed"
+                                        style={{ fontFamily: 'var(--font-prose)', color: 'var(--gray-800)' }}
+                                    >
+                                        {faq.answer}
+                                    </p>
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+
+                    {/* ═══ Prev / Next Group Nav ═══ */}
+                    <nav
+                        className="flex items-center justify-between pt-6 border-t"
+                        style={{ borderColor: 'var(--gray-300)' }}
+                    >
+                        {prevLetter ? (
+                            <Link
+                                to={`/group/${prevLetter.toLowerCase()}`}
+                                className="text-sm hover:underline"
+                                style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, color: 'var(--gray-900)' }}
+                            >
+                                ← Group {prevLetter}
+                            </Link>
+                        ) : <span />}
+                        <Link
+                            to="/"
+                            className="text-xs uppercase tracking-[0.04em] hover:underline"
+                            style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, color: 'var(--gray-500)' }}
+                        >
+                            All Groups
+                        </Link>
+                        {nextLetter ? (
+                            <Link
+                                to={`/group/${nextLetter.toLowerCase()}`}
+                                className="text-sm hover:underline"
+                                style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, color: 'var(--gray-900)' }}
+                            >
+                                Group {nextLetter} →
+                            </Link>
+                        ) : <span />}
+                    </nav>
+
                 </div>
-            </section>
+            </div>
         </Layout>
     );
 };
