@@ -422,6 +422,7 @@ export const GroupPage: React.FC = () => {
     const impliedLookup = new Map<string, number>(
         teamMarketView.map((entry): [string, number] => [entry.team.code, entry.impliedPct ?? 0])
     );
+    const maxImpliedInGroup = Math.max(1, ...teamMarketView.map((entry) => entry.impliedPct ?? 0));
 
     const fixtureFocus = group.matches.reduce<{
         score: number;
@@ -462,7 +463,7 @@ export const GroupPage: React.FC = () => {
             <SchemaScript schema={groupSchema} />
 
             <div className="px-5 pt-12 pb-20">
-                <div className="max-w-[660px] mx-auto">
+                <div className="max-w-[780px] mx-auto">
 
                     {/* Breadcrumb */}
                     <div className="mb-8">
@@ -483,13 +484,30 @@ export const GroupPage: React.FC = () => {
                     />
 
                     {/* ═══ Analysis ═══ */}
-                    <section className="mb-14 prose-editorial">
-                        <p>{meta.analysis}</p>
+                    <section
+                        className="mb-16 rounded-[14px] border px-6 py-7 md:px-8 md:py-9"
+                        style={{
+                            borderColor: 'var(--gray-200)',
+                            background: 'linear-gradient(180deg, var(--gray-50), #fff)',
+                        }}
+                    >
+                        <div
+                            className="text-[10px] uppercase tracking-[0.08em] mb-4"
+                            style={{ fontFamily: 'var(--font-ui)', fontWeight: 800, color: 'var(--gray-500)' }}
+                        >
+                            Editorial Lens
+                        </div>
+                        <div className="prose-editorial">
+                            <p className="dropcap">{meta.analysis}</p>
+                        </div>
                     </section>
 
                     {/* ═══ Editorial Deep Dive ═══ */}
                     {deepDive && (
-                        <section className="mb-14">
+                        <section
+                            className="mb-16 rounded-[14px] border p-6 md:p-8"
+                            style={{ borderColor: 'var(--gray-200)' }}
+                        >
                             <div
                                 className="flex items-baseline justify-between pb-2 mb-6 border-b-[3px]"
                                 style={{ borderColor: 'var(--gray-900)' }}
@@ -515,7 +533,7 @@ export const GroupPage: React.FC = () => {
                                 {deepDive.standfirst}
                             </h2>
 
-                            <div className="grid lg:grid-cols-[230px_1fr] gap-8 items-start">
+                            <div className="grid lg:grid-cols-[250px_1fr] gap-10 items-start">
                                 <aside className="space-y-3">
                                     <div className="border p-3" style={{ borderColor: 'var(--gray-300)', background: 'var(--gray-50)' }}>
                                         <div
@@ -579,6 +597,50 @@ export const GroupPage: React.FC = () => {
                                             {scheduleWindowDays} day window
                                         </div>
                                     </div>
+
+                                    <div className="border p-3" style={{ borderColor: 'var(--gray-300)', background: 'var(--gray-50)' }}>
+                                        <div
+                                            className="text-[10px] uppercase tracking-[0.08em] mb-2"
+                                            style={{ fontFamily: 'var(--font-ui)', fontWeight: 800, color: 'var(--gray-500)' }}
+                                        >
+                                            Group Shape
+                                        </div>
+                                        <div className="space-y-2.5">
+                                            {teamMarketView.slice(0, 4).map((entry) => {
+                                                const width = Math.max(
+                                                    12,
+                                                    Math.round(((entry.impliedPct ?? 0) / maxImpliedInGroup) * 100)
+                                                );
+                                                return (
+                                                    <div key={entry.team.code}>
+                                                        <div className="flex items-center justify-between mb-1">
+                                                            <span
+                                                                className="text-[11px]"
+                                                                style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, color: 'var(--gray-800)' }}
+                                                            >
+                                                                {entry.team.code}
+                                                            </span>
+                                                            <span
+                                                                className="text-[11px]"
+                                                                style={{ fontFamily: 'var(--font-data)', fontWeight: 700, color: 'var(--gray-500)' }}
+                                                            >
+                                                                {entry.odds?.implied ?? '—'}
+                                                            </span>
+                                                        </div>
+                                                        <div className="h-1.5 w-full" style={{ background: 'var(--gray-200)' }}>
+                                                            <div
+                                                                className="h-full"
+                                                                style={{
+                                                                    width: `${width}%`,
+                                                                    background: entry.team.code === favoriteTeam?.team.code ? 'var(--brand-red)' : 'var(--gray-800)',
+                                                                }}
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
                                 </aside>
 
                                 <div>
@@ -630,12 +692,12 @@ export const GroupPage: React.FC = () => {
                                 </div>
                             </div>
 
-                            <div className="grid md:grid-cols-3 gap-4 mt-7 stagger">
+                            <div className="grid md:grid-cols-3 gap-5 mt-8 stagger">
                                 {deepDive.watchlist.map((note, index) => (
                                     <div
                                         key={note}
-                                        className="border p-4"
-                                        style={{ borderColor: 'var(--gray-300)' }}
+                                        className="border p-4 rounded-[10px]"
+                                        style={{ borderColor: 'var(--gray-300)', background: '#fff' }}
                                     >
                                         <div
                                             className="text-[10px] uppercase tracking-[0.08em] mb-2"
@@ -657,7 +719,10 @@ export const GroupPage: React.FC = () => {
 
                     {/* ═══ Edge Cards (if available) ═══ */}
                     {displayEdges.length > 0 && (
-                        <section className="mb-14">
+                        <section
+                            className="mb-16 rounded-[14px] border p-6 md:p-8"
+                            style={{ borderColor: 'var(--gray-200)', background: 'var(--gray-50)' }}
+                        >
                             <div
                                 className="flex items-baseline justify-between pb-2 mb-6 border-b-[3px]"
                                 style={{ borderColor: 'var(--gray-900)' }}
@@ -676,7 +741,7 @@ export const GroupPage: React.FC = () => {
                                 </span>
                             </div>
 
-                            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 stagger">
+                            <div className="grid sm:grid-cols-2 gap-5 stagger">
                                 {displayEdges.map((edge) => (
                                     <EdgeCard
                                         key={edge.market}
@@ -699,7 +764,50 @@ export const GroupPage: React.FC = () => {
                     )}
 
                     {/* ═══ Outright Odds Table ═══ */}
-                    <section className="mb-14">
+                    <section
+                        className="mb-16 rounded-[14px] border p-6 md:p-8"
+                        style={{ borderColor: 'var(--gray-200)' }}
+                    >
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+                            {teamMarketView.slice(0, 4).map((entry) => {
+                                const width = Math.max(
+                                    12,
+                                    Math.round(((entry.impliedPct ?? 0) / maxImpliedInGroup) * 100)
+                                );
+                                return (
+                                    <div
+                                        key={`mini-${entry.team.code}`}
+                                        className="border rounded-[10px] p-3"
+                                        style={{ borderColor: 'var(--gray-300)', background: 'var(--gray-50)' }}
+                                    >
+                                        <div className="flex items-center justify-between mb-1.5">
+                                            <span
+                                                className="text-[11px] uppercase"
+                                                style={{ fontFamily: 'var(--font-ui)', fontWeight: 800, color: 'var(--gray-800)' }}
+                                            >
+                                                {entry.team.code}
+                                            </span>
+                                            <span
+                                                className="text-[11px]"
+                                                style={{ fontFamily: 'var(--font-data)', fontWeight: 700, color: 'var(--gray-500)' }}
+                                            >
+                                                {entry.odds?.implied ?? '—'}
+                                            </span>
+                                        </div>
+                                        <div className="h-1.5 w-full" style={{ background: 'var(--gray-200)' }}>
+                                            <div
+                                                className="h-full"
+                                                style={{
+                                                    width: `${width}%`,
+                                                    background: entry.team.code === favoriteTeam?.team.code ? 'var(--brand-red)' : 'var(--gray-800)',
+                                                }}
+                                            />
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+
                         <div
                             className="flex items-baseline justify-between pb-2 mb-6 border-b-[3px]"
                             style={{ borderColor: 'var(--gray-900)' }}
@@ -811,7 +919,10 @@ export const GroupPage: React.FC = () => {
                     </section>
 
                     {/* ═══ Match Schedule ═══ */}
-                    <section className="mb-14">
+                    <section
+                        className="mb-16 rounded-[14px] border p-6 md:p-8"
+                        style={{ borderColor: 'var(--gray-200)' }}
+                    >
                         <div
                             className="flex items-baseline justify-between pb-2 mb-6 border-b-[3px]"
                             style={{ borderColor: 'var(--gray-900)' }}
@@ -830,7 +941,7 @@ export const GroupPage: React.FC = () => {
                             </span>
                         </div>
 
-                        <div>
+                        <div className="rounded-[10px] overflow-hidden border" style={{ borderColor: 'var(--gray-200)' }}>
                             {group.matches.map((match, i) => (
                                 <MatchRow
                                     key={i}
@@ -847,7 +958,10 @@ export const GroupPage: React.FC = () => {
                     </section>
 
                     {/* ═══ FAQ ═══ */}
-                    <section className="mb-14 pt-10 border-t" style={{ borderColor: 'var(--gray-300)' }}>
+                    <section
+                        className="mb-16 rounded-[14px] border p-6 md:p-8"
+                        style={{ borderColor: 'var(--gray-200)', background: 'linear-gradient(180deg, #fff, var(--gray-50))' }}
+                    >
                         <div
                             className="text-sm uppercase tracking-[0.04em] mb-8"
                             style={{ fontFamily: 'var(--font-ui)', fontWeight: 800, color: 'var(--gray-500)' }}
@@ -876,8 +990,8 @@ export const GroupPage: React.FC = () => {
 
                     {/* ═══ Prev / Next Group Nav ═══ */}
                     <nav
-                        className="flex items-center justify-between pt-6 border-t"
-                        style={{ borderColor: 'var(--gray-300)' }}
+                        className="flex items-center justify-between rounded-[12px] border px-4 py-4"
+                        style={{ borderColor: 'var(--gray-300)', background: 'var(--gray-50)' }}
                     >
                         {prevLetter ? (
                             <Link
