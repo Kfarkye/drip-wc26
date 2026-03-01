@@ -8,6 +8,7 @@ import { SchemaScript } from '../components/SchemaScript';
 import { generateGroupSchema } from '../lib/schema';
 import { allGroups } from '../data/groups';
 import { getFlagUrl } from '../lib/flags';
+import { useGroupEdges, useGroupOdds } from '../hooks/useLiveData';
 
 /* ── Group metadata for editorial treatments ── */
 const GROUP_META: Record<string, {
@@ -132,6 +133,35 @@ export const GroupPage: React.FC = () => {
 
     const meta = GROUP_META[upperLetter] || { analysis: '' };
 
+    // Live edges from DB — falls back to static edges in GROUP_META
+    const { data: liveEdgeResult } = useGroupEdges(upperLetter);
+    const liveEdges = liveEdgeResult?.data ?? [];
+    const hasLiveEdges = liveEdgeResult?.isLive && liveEdges.length > 0;
+
+    // Live team odds from DB — falls back to static TEAM_ODDS
+    const { data: liveOdds } = useGroupOdds(upperLetter);
+    const getOdds = (code: string) => {
+        const live = liveOdds?.[code];
+        if (live?.isLive) return live;
+        const fallback = TEAM_ODDS[code];
+        return fallback ? { ...fallback, isLive: false, isLongshot: fallback.isLongshot ?? false } : null;
+    };
+
+    // Merge: live edges take priority, static edges as fallback
+    const displayEdges = hasLiveEdges
+        ? liveEdges.map(e => ({
+            market: e.market,
+            sbName: e.sbName,
+            sbOdds: e.sbOdds,
+            pmName: e.pmName,
+            pmPrice: e.pmPrice,
+            edge: e.edge,
+            confidence: e.confidence,
+            volume: e.volume,
+            link: e.link,
+        }))
+        : (meta.edges || []);
+
     const faqs = [
         {
             question: `Who will win World Cup 2026 Group ${upperLetter}?`,
@@ -184,7 +214,7 @@ export const GroupPage: React.FC = () => {
                     </section>
 
                     {/* ═══ Edge Cards (if available) ═══ */}
-                    {meta.edges && meta.edges.length > 0 && (
+                    {displayEdges.length > 0 && (
                         <section className="mb-14">
                             <div
                                 className="flex items-baseline justify-between pb-2 mb-6 border-b-[3px]"
@@ -198,14 +228,14 @@ export const GroupPage: React.FC = () => {
                                 </h3>
                                 <span
                                     className="text-[13px] uppercase"
-                                    style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, color: 'var(--gray-500)' }}
+                                    style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, color: hasLiveEdges ? 'var(--brand-red)' : 'var(--gray-500)' }}
                                 >
-                                    Book vs Market
+                                    {hasLiveEdges ? 'Live' : 'Book vs Market'}
                                 </span>
                             </div>
 
                             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 stagger">
-                                {meta.edges.map((edge) => (
+                                {displayEdges.map((edge) => (
                                     <EdgeCard
                                         key={edge.market}
                                         marketName={edge.market}
@@ -256,7 +286,7 @@ export const GroupPage: React.FC = () => {
                                 </thead>
                                 <tbody>
                                     {group.teams.map((team, i) => {
-                                        const odds = TEAM_ODDS[team.code];
+                                        const odds = getOdds(team.code);
                                         const flagUrl = getFlagUrl(team.code);
                                         const isTop = i === 0;
 

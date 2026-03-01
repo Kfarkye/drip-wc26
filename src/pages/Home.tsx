@@ -3,26 +3,9 @@ import { Link } from 'react-router-dom';
 import { Layout } from '../components/Layout';
 import { allGroups } from '../data/groups';
 import { getFlagUrl } from '../lib/flags';
+import { useFavorites, useMarketDepth } from '../hooks/useLiveData';
 
-/* ── Static editorial data (outright winner odds, not in DB yet) ── */
-
-const FAVORITES = [
-    { name: 'Spain', code: 'ESP', group: 'H', odds: '+450', implied: '15.0%', pct: 100, desc: 'Euro 2024 Champs' },
-    { name: 'England', code: 'ENG', group: 'L', odds: '+550', implied: '13.2%', pct: 88, desc: 'Kane + Bellingham' },
-    { name: 'Argentina', code: 'ARG', group: 'J', odds: '+800', implied: '12.3%', pct: 82, desc: 'Defending Champs' },
-    { name: 'France', code: 'FRA', group: 'I', odds: '+750', implied: '10.5%', pct: 70, desc: 'Mbappé Golden Boot fav' },
-    { name: 'Brazil', code: 'BRA', group: 'C', odds: '+750', implied: '10.5%', pct: 70, desc: '5× Champions' },
-    { name: 'Germany', code: 'GER', group: 'E', odds: '+1000', implied: '7.1%', pct: 47, desc: 'Wirtz & Musiala' },
-];
-
-const MARKET_DEPTH = [
-    { name: 'Spain', code: 'ESP', amount: '$41.3M', pct: '18.5%', width: 100, isLeader: true },
-    { name: 'England', code: 'ENG', amount: '$31.7M', pct: '14.2%', width: 76 },
-    { name: 'Argentina', code: 'ARG', amount: '$30.8M', pct: '13.8%', width: 74 },
-    { name: 'France', code: 'FRA', amount: '$27.0M', pct: '12.1%', width: 65 },
-    { name: 'Brazil', code: 'BRA', amount: '$25.7M', pct: '11.5%', width: 62 },
-    { name: 'Germany', code: 'GER', amount: '$18.5M', pct: '8.3%', width: 44 },
-];
+/* ── Editorial data pulled from hooks with static fallback ── */
 
 const GROUP_META: Record<string, { badge?: string; badgeType?: string; tagline: string }> = {
     A: { badge: 'Host Nation', badgeType: 'host', tagline: 'Mexico opener at Azteca' },
@@ -59,6 +42,14 @@ const Arrow: React.FC = () => (
 );
 
 export const Home: React.FC = () => {
+    const { data: favResult } = useFavorites();
+    const { data: depthResult } = useMarketDepth();
+
+    const FAVORITES = favResult?.data ?? [];
+    const MARKET_DEPTH = depthResult?.data ?? [];
+    const totalVolume = depthResult?.totalVolume ?? '$223.3M';
+    const isLive = favResult?.isLive || depthResult?.isLive || false;
+
     return (
         <Layout>
             <div className="px-5 pt-12 pb-20">
@@ -105,7 +96,7 @@ export const Home: React.FC = () => {
                         <span style={{ color: 'var(--gray-300)' }}>|</span>
                         <span>February 28, 2026</span>
                         <span style={{ color: 'var(--gray-300)' }}>|</span>
-                        <span>Vol: $223.3M</span>
+                        <span>Vol: {totalVolume}{isLive ? ' · Live' : ''}</span>
                     </div>
                 </header>
 
@@ -138,7 +129,7 @@ export const Home: React.FC = () => {
                                 className="text-base uppercase"
                                 style={{ fontFamily: 'var(--font-data)', fontWeight: 600, color: 'var(--gray-500)' }}
                             >
-                                $223.3M Total
+                                {totalVolume} Total
                             </div>
                         </div>
 
