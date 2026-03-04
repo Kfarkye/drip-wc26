@@ -1,7 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Layout } from '../components/Layout';
 import { MatchRow } from '../components/MatchRow';
 import { getMatchesForUtcDate, type TodayMatch } from '../lib/api';
+import { useFavorites, useMarketDepth } from '../hooks/useLiveData';
 
 type MatchGroup = {
     key: string;
@@ -48,11 +50,44 @@ const parseLoadErrorMessage = (error: unknown): string => {
     return 'Failed to load matches.';
 };
 
+const upsertMetaTag = (attr: 'name' | 'property', key: string, content: string): void => {
+    let tag = document.head.querySelector<HTMLMetaElement>(`meta[${attr}="${key}"]`);
+    if (!tag) {
+        tag = document.createElement('meta');
+        tag.setAttribute(attr, key);
+        document.head.appendChild(tag);
+    }
+    tag.setAttribute('content', content);
+};
+
+const upsertCanonical = (href: string): void => {
+    let link = document.head.querySelector<HTMLLinkElement>('link[rel="canonical"]');
+    if (!link) {
+        link = document.createElement('link');
+        link.setAttribute('rel', 'canonical');
+        document.head.appendChild(link);
+    }
+    link.setAttribute('href', href);
+};
+
+const upsertJsonLd = (id: string, payload: Record<string, unknown>): void => {
+    let script = document.getElementById(id) as HTMLScriptElement | null;
+    if (!script) {
+        script = document.createElement('script');
+        script.id = id;
+        script.type = 'application/ld+json';
+        document.head.appendChild(script);
+    }
+    script.textContent = JSON.stringify(payload);
+};
+
 export const TodayPage: React.FC = () => {
     const [dateUtc] = useState<string>(toUtcIsoDate);
     const [matches, setMatches] = useState<TodayMatch[]>([]);
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
+    const { data: favoritesPayload } = useFavorites();
+    const { data: marketDepthPayload } = useMarketDepth();
 
     useEffect(() => {
         let active = true;
@@ -85,8 +120,39 @@ export const TodayPage: React.FC = () => {
         };
     }, [dateUtc]);
 
+    useEffect(() => {
+        const pageTitle = `Today’s World Cup Odds & Match Slate (${dateUtc}) | The Drip`;
+        const pageDescription = `Daily World Cup 2026 betting pulse for ${dateUtc}: today’s match slate, pricing leaders, and market volume trends across sportsbook and prediction market data.`;
+        const pageUrl = 'https://thedrip.to/today';
+
+        document.title = pageTitle;
+        upsertCanonical(pageUrl);
+        upsertMetaTag('name', 'description', pageDescription);
+        upsertMetaTag('property', 'og:title', pageTitle);
+        upsertMetaTag('property', 'og:description', pageDescription);
+        upsertMetaTag('property', 'og:url', pageUrl);
+        upsertMetaTag('property', 'og:type', 'website');
+        upsertMetaTag('name', 'twitter:card', 'summary');
+        upsertMetaTag('name', 'twitter:title', pageTitle);
+        upsertMetaTag('name', 'twitter:description', pageDescription);
+
+        upsertJsonLd('today-page-ld', {
+            '@context': 'https://schema.org',
+            '@type': 'WebPage',
+            name: 'Today — The Drip',
+            url: pageUrl,
+            description: pageDescription,
+            dateModified: `${dateUtc}T00:00:00.000Z`,
+        });
+    }, [dateUtc]);
+
     const grouped = useMemo(() => groupMatches(matches), [matches]);
     const totalMatches = matches.length;
+    const topFavorite = favoritesPayload?.data?.[0];
+    const topVolume = marketDepthPayload?.data?.[0];
+    const volumeTotal = marketDepthPayload?.totalVolume ?? null;
+    const sameLeader = !!topFavorite && !!topVolume && topFavorite.name === topVolume.name;
+    const favoriteGroupPath = topFavorite?.group ? `/group/${topFavorite.group.toLowerCase()}` : '/';
 
     return (
         <Layout>
@@ -112,6 +178,93 @@ export const TodayPage: React.FC = () => {
                             UTC Date {dateUtc}
                         </p>
                     </header>
+
+                    <section
+                        className="mb-8 rounded-[14px] border p-6 md:p-8"
+                        style={{ borderColor: 'var(--gray-200)' }}
+                    >
+                        <div
+                            className="flex items-baseline justify-between pb-2 mb-6 border-b-[3px]"
+                            style={{ borderColor: 'var(--gray-900)' }}
+                        >
+                            <h2
+                                className="text-xl uppercase tracking-[-0.02em]"
+                                style={{ fontFamily: 'var(--font-ui)', fontWeight: 800 }}
+                            >
+                                Daily Market Pulse
+                            </h2>
+                            <span
+                                className="text-[12px] uppercase"
+                                style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, color: 'var(--gray-500)' }}
+                            >
+                                Updated Daily
+                            </span>
+                        </div>
+
+                        <div className="grid md:grid-cols-3 gap-4">
+                            <article className="rounded-[10px] border p-4" style={{ borderColor: 'var(--gray-200)' }}>
+                                <h3
+                                    className="text-[11px] uppercase mb-2"
+                                    style={{ fontFamily: 'var(--font-ui)', fontWeight: 800, color: 'var(--gray-500)' }}
+                                >
+                                    Favorite Of The Day
+                                </h3>
+                                <p className="text-sm" style={{ color: 'var(--gray-900)', fontWeight: 700 }}>
+                                    {topFavorite ? `${topFavorite.name} ${topFavorite.odds}` : 'Loading live consensus...'}
+                                </p>
+                                <p className="text-[12px] mt-1" style={{ color: 'var(--gray-500)' }}>
+                                    {topFavorite ? `${topFavorite.implied} implied winner probability.` : 'Derived from consensus pricing across books.'}
+                                </p>
+                            </article>
+
+                            <article className="rounded-[10px] border p-4" style={{ borderColor: 'var(--gray-200)' }}>
+                                <h3
+                                    className="text-[11px] uppercase mb-2"
+                                    style={{ fontFamily: 'var(--font-ui)', fontWeight: 800, color: 'var(--gray-500)' }}
+                                >
+                                    Volume Leader
+                                </h3>
+                                <p className="text-sm" style={{ color: 'var(--gray-900)', fontWeight: 700 }}>
+                                    {topVolume ? topVolume.name : 'Loading live volume...'}
+                                </p>
+                                <p className="text-[12px] mt-1" style={{ color: 'var(--gray-500)' }}>
+                                    {topVolume ? `${topVolume.pct} of ${volumeTotal ?? 'tracked'} market volume.` : 'Based on prediction market flow.'}
+                                </p>
+                            </article>
+
+                            <article className="rounded-[10px] border p-4" style={{ borderColor: 'var(--gray-200)' }}>
+                                <h3
+                                    className="text-[11px] uppercase mb-2"
+                                    style={{ fontFamily: 'var(--font-ui)', fontWeight: 800, color: 'var(--gray-500)' }}
+                                >
+                                    Daily Opportunity
+                                </h3>
+                                <p className="text-[12px]" style={{ color: 'var(--gray-700)' }}>
+                                    {topFavorite && topVolume
+                                        ? sameLeader
+                                            ? `${topFavorite.name} leads both price and volume. Monitor for overreaction before kickoff windows.`
+                                            : `${topFavorite.name} leads pricing while ${topVolume.name} leads flow. Divergence like this is where mispricing can emerge.`
+                                        : 'Watch for pricing-flow divergence as liquidity builds throughout the day.'}
+                                </p>
+                                <div className="mt-3 flex gap-3">
+                                    <Link
+                                        to={favoriteGroupPath}
+                                        className="text-[12px] uppercase"
+                                        style={{ fontFamily: 'var(--font-ui)', fontWeight: 800, color: 'var(--gray-900)' }}
+                                    >
+                                        Open Group Intel
+                                    </Link>
+                                    <Link
+                                        to="/"
+                                        className="text-[12px] uppercase"
+                                        style={{ fontFamily: 'var(--font-ui)', fontWeight: 800, color: 'var(--gray-500)' }}
+                                    >
+                                        Open Hub
+                                    </Link>
+                                </div>
+                            </article>
+                        </div>
+                    </section>
 
                     <section
                         className="mb-16 rounded-[14px] border p-6 md:p-8"
@@ -181,9 +334,12 @@ export const TodayPage: React.FC = () => {
                                             <MatchRow
                                                 key={match.id}
                                                 homeTeam={match.homeTeam}
+                                                homeCode={match.homeCode}
                                                 awayTeam={match.awayTeam}
+                                                awayCode={match.awayCode}
                                                 kickoff={match.commenceTime}
                                                 venue={match.venue}
+                                                matchNumber={match.matchNumber}
                                             />
                                         ))}
                                     </div>

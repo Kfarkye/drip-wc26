@@ -221,6 +221,7 @@ function renderNav(): string {
         <a href="/"><span class="t">the</span><span class="d">Drip</span></a>
         <div class="nav-links">
           <a href="/">Hub</a>
+          <a href="/today">Today</a>
           <a href="/group/d">Group D</a>
         </div>
       </div>
@@ -476,8 +477,18 @@ ${renderFooter()}
 // ═══════════════════════════════════════════════════════════════
 
 function generateSitemap(matches: MatchSeed[]): string {
+    const groupUrls = Object.keys(allGroups)
+        .sort()
+        .map((letter) => ({
+            loc: `${SITE_URL}/group/${letter.toLowerCase()}`,
+            priority: '0.8',
+            changefreq: 'daily',
+        }));
+
     const urls = [
         { loc: `${SITE_URL}/`, priority: '1.0', changefreq: 'daily' },
+        { loc: `${SITE_URL}/today`, priority: '0.95', changefreq: 'daily' },
+        ...groupUrls,
         ...matches.map(m => ({
             loc: `${SITE_URL}/edges/${m.slug}/`,
             priority: m.phase === 'final' ? '1.0' : m.phase === 'group' ? '0.9' : '0.8',

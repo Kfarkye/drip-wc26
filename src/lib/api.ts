@@ -18,9 +18,12 @@ export async function getEdges(groupLetter: string) {
 export interface TodayMatch {
     id: string;
     homeTeam: string;
+    homeCode?: string;
     awayTeam: string;
+    awayCode?: string;
     commenceTime: string;
     venue: string;
+    matchNumber?: number;
     sportKey: string;
     leagueKey: string;
     sportLabel: string;
@@ -114,16 +117,27 @@ const mapTodayMatch = (row: DbRow, index: number): TodayMatch | null => {
 
     const homeTeam = readFirstString(row, ['home_team_name', 'home_team', 'home_name']) ?? 'Home';
     const awayTeam = readFirstString(row, ['away_team_name', 'away_team', 'away_name']) ?? 'Away';
+    const homeCode = readFirstString(row, ['home_team_code', 'home_code']) ?? undefined;
+    const awayCode = readFirstString(row, ['away_team_code', 'away_code']) ?? undefined;
     const venue = readFirstString(row, ['venue_name', 'venue', 'stadium']) ?? 'Venue TBA';
     const id = readFirstString(row, ['id', 'match_id', 'event_id']) ?? `${commenceTime}-${homeTeam}-${awayTeam}-${index}`;
+    const rawMatchNumber = row.match_number;
+    const matchNumber = typeof rawMatchNumber === 'number'
+        ? rawMatchNumber
+        : typeof rawMatchNumber === 'string'
+            ? Number.parseInt(rawMatchNumber, 10)
+            : undefined;
     const { sportKey, leagueKey, sportLabel, leagueLabel } = deriveSportLeague(row);
 
     return {
         id,
         homeTeam,
+        homeCode,
         awayTeam,
+        awayCode,
         commenceTime,
         venue,
+        matchNumber: Number.isFinite(matchNumber as number) ? matchNumber : undefined,
         sportKey,
         leagueKey,
         sportLabel,
