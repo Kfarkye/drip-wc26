@@ -32,6 +32,10 @@ export const MatchRow: React.FC<MatchRowProps> = ({
 }) => {
     const homeFlag = homeCode ? getFlagUrl(homeCode) : null;
     const awayFlag = awayCode ? getFlagUrl(awayCode) : null;
+    const shouldShowVenue =
+        !!venue &&
+        venue.trim().length > 0 &&
+        !['tba', 'to be announced'].includes(venue.trim().toLowerCase());
 
     return (
         <div
@@ -78,14 +82,16 @@ export const MatchRow: React.FC<MatchRowProps> = ({
             </div>
 
             <div className="flex items-center gap-4 flex-shrink-0 text-right">
-                <div className="hidden sm:block">
-                    <span
-                        className="text-xs"
-                        style={{ fontFamily: 'var(--font-ui)', fontWeight: 500, color: 'var(--gray-500)' }}
-                    >
-                        {venue}
-                    </span>
-                </div>
+                {shouldShowVenue ? (
+                    <div className="hidden sm:block">
+                        <span
+                            className="text-xs"
+                            style={{ fontFamily: 'var(--font-ui)', fontWeight: 500, color: 'var(--gray-500)' }}
+                        >
+                            {venue}
+                        </span>
+                    </div>
+                ) : null}
                 <div className="text-right">
                     <div
                         className="text-xs"

@@ -8,6 +8,9 @@ export const Nav: React.FC = () => {
     const isToday = location.pathname === '/today';
     const { data: status } = useDataStatus();
     const hasLiveData = status?.configured && ((status?.oddsCount ?? 0) > 0 || (status?.polyCount ?? 0) > 0);
+    const liveDate = new Date()
+        .toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+        .toUpperCase();
 
     return (
         <nav className="border-t-[6px] border-t-[var(--gray-900)] border-b border-b-[var(--gray-200)] bg-white sticky top-0 z-50">
@@ -90,7 +93,7 @@ export const Nav: React.FC = () => {
                         className="text-[11px] uppercase tracking-[0.06em]"
                         style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, color: 'var(--gray-500)' }}
                     >
-                        Feb 28, 2026
+                        {liveDate}
                     </span>
                 </div>
             </div>
