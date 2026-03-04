@@ -5,6 +5,9 @@ import { Home } from './pages/Home';
 const GroupPage = lazy(() =>
   import('./pages/GroupPage').then((module) => ({ default: module.GroupPage }))
 );
+const TodayPage = lazy(() =>
+  import('./pages/TodayPage').then((module) => ({ default: module.TodayPage }))
+);
 const EdgeDetailPage = lazy(() =>
   import('./pages/EdgeDetailPage').then((module) => ({ default: module.EdgeDetailPage }))
 );
@@ -18,6 +21,14 @@ function App() {
     <Router>
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route
+          path="/today"
+          element={
+            <Suspense fallback={<RouteFallback />}>
+              <TodayPage />
+            </Suspense>
+          }
+        />
         <Route
           path="/group/:letter"
           element={

@@ -5,6 +5,7 @@ import { useDataStatus } from '../../hooks/useLiveData';
 export const Nav: React.FC = () => {
     const location = useLocation();
     const isHome = location.pathname === '/';
+    const isToday = location.pathname === '/today';
     const { data: status } = useDataStatus();
     const hasLiveData = status?.configured && ((status?.oddsCount ?? 0) > 0 || (status?.polyCount ?? 0) > 0);
 
@@ -38,6 +39,17 @@ export const Nav: React.FC = () => {
                             }}
                         >
                             Markets
+                        </Link>
+                        <Link
+                            to="/today"
+                            className="text-[13px] transition-colors"
+                            style={{
+                                fontFamily: 'var(--font-ui)',
+                                fontWeight: isToday ? 700 : 500,
+                                color: isToday ? 'var(--gray-900)' : 'var(--gray-500)',
+                            }}
+                        >
+                            Today
                         </Link>
                         {['A','B','C','D','E','F','G','H','I','J','K','L'].map(letter => {
                             const isActive = location.pathname === `/group/${letter.toLowerCase()}`;
