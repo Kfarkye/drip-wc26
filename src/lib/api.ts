@@ -43,6 +43,9 @@ type QueryErrorLike = {
     details?: string;
 };
 
+const uniqueStrings = (values: Array<string | null | undefined>): string[] =>
+    Array.from(new Set(values.filter((value): value is string => typeof value === 'string' && value.length > 0)));
+
 const readFirstString = (row: DbRow, keys: string[]): string | null => {
     for (const key of keys) {
         const value = row[key];
@@ -88,6 +91,85 @@ const isMissingTableError = (error: QueryErrorLike | null): boolean =>
 
 const isPermissionError = (error: QueryErrorLike | null): boolean =>
     !!error && (error.code === '42501' || /permission denied/i.test(error.message ?? ''));
+
+const withResolvedVenueAndTeams = async (rows: DbRow[]): Promise<DbRow[]> => {
+    if (rows.length === 0) return rows;
+
+    const venueById = new Map<string, string>();
+    const teamNameByCode = new Map<string, string>();
+
+    const venueIds = uniqueStrings(rows.map((row) => readFirstString(row, ['venue_id'])));
+    if (venueIds.length > 0) {
+        const { data, error } = await supabase
+            .from('venues')
+            .select('id,name,city')
+            .in('id', venueIds);
+
+        if (!error) {
+            for (const entry of ((data as DbRow[] | null) ?? [])) {
+                const id = readFirstString(entry, ['id']);
+                const name = readFirstString(entry, ['name']);
+                const city = readFirstString(entry, ['city']);
+                if (!id || !name) continue;
+                venueById.set(id, city ? `${name}, ${city}` : name);
+            }
+        }
+    }
+
+    const teamCodes = uniqueStrings(rows.flatMap((row) => [
+        readFirstString(row, ['home_team_code', 'home_code']),
+        readFirstString(row, ['away_team_code', 'away_code']),
+    ]).map((code) => code?.toUpperCase()));
+
+    if (teamCodes.length > 0) {
+        const { data, error } = await supabase
+            .from('teams')
+            .select('code,name')
+            .in('code', teamCodes);
+
+        if (!error) {
+            for (const entry of ((data as DbRow[] | null) ?? [])) {
+                const code = readFirstString(entry, ['code']);
+                const name = readFirstString(entry, ['name']);
+                if (!code || !name) continue;
+                teamNameByCode.set(code.toUpperCase(), name);
+            }
+        }
+    }
+
+    return rows.map((row) => {
+        const next = { ...row };
+
+        const hasVenueText = readFirstString(next, ['venue_name', 'venue', 'stadium']);
+        if (!hasVenueText) {
+            const venueId = readFirstString(next, ['venue_id']);
+            if (venueId) {
+                const venueName = venueById.get(venueId);
+                if (venueName) next.venue_name = venueName;
+            }
+        }
+
+        const hasHomeName = readFirstString(next, ['home_team_name', 'home_team', 'home_name']);
+        if (!hasHomeName) {
+            const homeCode = readFirstString(next, ['home_team_code', 'home_code']);
+            if (homeCode) {
+                const resolved = teamNameByCode.get(homeCode.toUpperCase());
+                if (resolved) next.home_team_name = resolved;
+            }
+        }
+
+        const hasAwayName = readFirstString(next, ['away_team_name', 'away_team', 'away_name']);
+        if (!hasAwayName) {
+            const awayCode = readFirstString(next, ['away_team_code', 'away_code']);
+            if (awayCode) {
+                const resolved = teamNameByCode.get(awayCode.toUpperCase());
+                if (resolved) next.away_team_name = resolved;
+            }
+        }
+
+        return next;
+    });
+};
 
 const deriveSportLeague = (row: DbRow): { sportKey: string; leagueKey: string; sportLabel: string; leagueLabel: string } => {
     const rawSportKey = readFirstString(row, ['sport_key', 'sport', 'sport_title']);
@@ -162,7 +244,10 @@ export async function getMatchesForUtcDate(dateUtc: string): Promise<TodayMatch[
                 .order(timeColumn, { ascending: true });
 
             if (!error) {
-                return ((data as DbRow[] | null) ?? [])
+                const baseRows = (data as DbRow[] | null) ?? [];
+                const displayRows = await withResolvedVenueAndTeams(baseRows);
+
+                return displayRows
                     .map((row, index) => mapTodayMatch(row, index))
                     .filter((row): row is TodayMatch => row !== null);
             }
