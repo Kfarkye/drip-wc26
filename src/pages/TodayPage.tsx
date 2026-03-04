@@ -38,6 +38,16 @@ const groupMatches = (matches: TodayMatch[]): MatchGroup[] => {
     });
 };
 
+const parseLoadErrorMessage = (error: unknown): string => {
+    if (error instanceof Error && error.message.trim()) return error.message;
+    if (typeof error === 'object' && error !== null) {
+        const record = error as { message?: unknown; details?: unknown };
+        if (typeof record.message === 'string' && record.message.trim()) return record.message;
+        if (typeof record.details === 'string' && record.details.trim()) return record.details;
+    }
+    return 'Failed to load matches.';
+};
+
 export const TodayPage: React.FC = () => {
     const [dateUtc] = useState<string>(toUtcIsoDate);
     const [matches, setMatches] = useState<TodayMatch[]>([]);
@@ -57,9 +67,9 @@ export const TodayPage: React.FC = () => {
                     setMatches(rows);
                 }
             } catch (error) {
+                console.error('Today page match query failed', error);
                 if (active) {
-                    const message = error instanceof Error ? error.message : 'Failed to load matches.';
-                    setErrorMessage(message);
+                    setErrorMessage(parseLoadErrorMessage(error));
                 }
             } finally {
                 if (active) {
@@ -186,4 +196,3 @@ export const TodayPage: React.FC = () => {
         </Layout>
     );
 };
-
