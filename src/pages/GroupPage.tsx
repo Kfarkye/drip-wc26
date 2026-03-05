@@ -8,7 +8,7 @@ import { SchemaScript } from '../components/SchemaScript';
 import { generateGroupSchema } from '../lib/schema';
 import { allGroups } from '../data/groups';
 import { getFlagUrl } from '../lib/flags';
-import { useGroupEdges, useGroupOdds } from '../hooks/useLiveData';
+import { useGroupAdvancementOdds, useGroupEdges, useGroupFixtures } from '../hooks/useLiveData';
 
 /* ── Group metadata for editorial treatments ── */
 const GROUP_META: Record<string, {
@@ -127,52 +127,6 @@ const GROUP_META: Record<string, {
         badge: 'Group of Death', badgeType: 'death',
         analysis: 'England vs Croatia in Dallas acts as a brutal opening act. Croatia reached the 2018 final and 2022 semifinal. The consensus Group of Death.',
     },
-};
-
-/* ── Outright winner odds per team (for the group table) ── */
-const TEAM_ODDS: Record<string, { odds: string; implied: string; pct: number; isLongshot?: boolean }> = {
-    MEX: { odds: '+6600', implied: '1.5%', pct: 10 },
-    KOR: { odds: '+15000', implied: '0.7%', pct: 0, isLongshot: true },
-    RSA: { odds: '+50000', implied: '<0.2%', pct: 0, isLongshot: true },
-    SUI: { odds: '+10000', implied: '1.0%', pct: 7 },
-    CAN: { odds: '+15000', implied: '0.7%', pct: 0, isLongshot: true },
-    QAT: { odds: '+100000', implied: '<0.1%', pct: 0, isLongshot: true },
-    BRA: { odds: '+750', implied: '10.5%', pct: 70 },
-    MAR: { odds: '+5000', implied: '2.0%', pct: 13 },
-    SCO: { odds: '+50000', implied: '<0.2%', pct: 0, isLongshot: true },
-    HAI: { odds: '+100000', implied: '<0.1%', pct: 0, isLongshot: true },
-    USA: { odds: '+2500', implied: '3.8%', pct: 25 },
-    PAR: { odds: '+25000', implied: '<0.4%', pct: 0, isLongshot: true },
-    AUS: { odds: '+25000', implied: '<0.4%', pct: 0, isLongshot: true },
-    GER: { odds: '+1000', implied: '7.1%', pct: 47 },
-    CIV: { odds: '+25000', implied: '<0.4%', pct: 0, isLongshot: true },
-    ECU: { odds: '+25000', implied: '<0.4%', pct: 0, isLongshot: true },
-    CUW: { odds: '+100000', implied: '<0.1%', pct: 0, isLongshot: true },
-    NED: { odds: '+1400', implied: '5.3%', pct: 35 },
-    JPN: { odds: '+8000', implied: '1.2%', pct: 8 },
-    TUN: { odds: '+50000', implied: '<0.2%', pct: 0, isLongshot: true },
-    BEL: { odds: '+3000', implied: '2.5%', pct: 17 },
-    EGY: { odds: '+25000', implied: '<0.4%', pct: 0, isLongshot: true },
-    IRN: { odds: '+50000', implied: '<0.2%', pct: 0, isLongshot: true },
-    NZL: { odds: '+100000', implied: '<0.1%', pct: 0, isLongshot: true },
-    ESP: { odds: '+450', implied: '15.0%', pct: 100 },
-    URU: { odds: '+4000', implied: '2.4%', pct: 16 },
-    KSA: { odds: '+50000', implied: '<0.2%', pct: 0, isLongshot: true },
-    CPV: { odds: '+100000', implied: '<0.1%', pct: 0, isLongshot: true },
-    FRA: { odds: '+750', implied: '10.5%', pct: 70 },
-    NOR: { odds: '+10000', implied: '1.0%', pct: 7 },
-    SEN: { odds: '+15000', implied: '0.7%', pct: 0, isLongshot: true },
-    ARG: { odds: '+800', implied: '12.3%', pct: 82 },
-    AUT: { odds: '+15000', implied: '0.7%', pct: 0, isLongshot: true },
-    ALG: { odds: '+50000', implied: '<0.2%', pct: 0, isLongshot: true },
-    JOR: { odds: '+100000', implied: '<0.1%', pct: 0, isLongshot: true },
-    POR: { odds: '+1200', implied: '6.3%', pct: 42 },
-    COL: { odds: '+5000', implied: '2.0%', pct: 13 },
-    UZB: { odds: '+100000', implied: '<0.1%', pct: 0, isLongshot: true },
-    ENG: { odds: '+550', implied: '13.2%', pct: 88 },
-    CRO: { odds: '+5000', implied: '2.0%', pct: 13 },
-    GHA: { odds: '+50000', implied: '<0.2%', pct: 0, isLongshot: true },
-    PAN: { odds: '+100000', implied: '<0.1%', pct: 0, isLongshot: true },
 };
 
 type DeepDiveBlock = {
@@ -350,6 +304,18 @@ const parseImpliedPercent = (implied: string): number | null => {
     return Number.isFinite(value) ? value : null;
 };
 
+const formatScheduleDate = (kickoff: string): string => {
+    const parsed = new Date(kickoff);
+    if (!Number.isFinite(parsed.getTime())) return 'TBD';
+    return parsed.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+};
+
+const formatScheduleTime = (kickoff: string): string => {
+    const parsed = new Date(kickoff);
+    if (!Number.isFinite(parsed.getTime())) return 'TBD';
+    return parsed.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+};
+
 export const GroupPage: React.FC = () => {
     const { letter } = useParams<{ letter: string }>();
     const upperLetter = letter?.toUpperCase() ?? '';
@@ -364,13 +330,13 @@ export const GroupPage: React.FC = () => {
     const liveEdges = liveEdgeResult?.data ?? [];
     const hasLiveEdges = liveEdgeResult?.isLive && liveEdges.length > 0;
 
-    // Live team odds from DB — falls back to static TEAM_ODDS
-    const { data: liveOdds } = useGroupOdds(upperLetter);
+    // Live advancement odds and fixture schedule from DB
+    const { data: liveAdvancementOdds } = useGroupAdvancementOdds(upperLetter);
+    const { data: liveFixtures } = useGroupFixtures(upperLetter);
+
     const getOdds = (code: string) => {
-        const live = liveOdds?.[code];
-        if (live?.isLive) return live;
-        const fallback = TEAM_ODDS[code];
-        return fallback ? { ...fallback, isLive: false, isLongshot: fallback.isLongshot ?? false } : null;
+        const live = liveAdvancementOdds?.[code];
+        return live ?? null;
     };
 
     // Merge: live edges take priority, static edges as fallback
@@ -399,6 +365,8 @@ export const GroupPage: React.FC = () => {
         })
         .sort((a, b) => (b.impliedPct ?? -1) - (a.impliedPct ?? -1));
 
+    const hasAdvancementOdds = Object.keys(liveAdvancementOdds ?? {}).length > 0;
+
     const favoriteTeam = teamMarketView[0];
     const secondTeam = teamMarketView[1];
     const favoriteGap = (favoriteTeam?.impliedPct != null && secondTeam?.impliedPct != null)
@@ -410,15 +378,19 @@ export const GroupPage: React.FC = () => {
             favoriteGap < 4 ? 'wide-open' :
                 favoriteGap < 10 ? 'competitive' : 'top-heavy';
 
-    const kickoffTimes = group.matches
-        .map((match) => new Date(match.kickoff).getTime())
-        .filter((time) => Number.isFinite(time));
+    const fallbackScheduleRows = group.matches
+        .map((match) => ({
+            id: `${group.letter}-${match.matchNumber}`,
+            kickoff: match.kickoff,
+            homeTeam: match.homeTeam.name,
+            awayTeam: match.awayTeam.name,
+            venue: match.venue.name,
+            city: match.venue.city,
+            matchNumber: match.matchNumber,
+        }))
+        .sort((a, b) => new Date(a.kickoff).getTime() - new Date(b.kickoff).getTime());
 
-    const scheduleWindowDays = kickoffTimes.length > 1
-        ? Math.round((Math.max(...kickoffTimes) - Math.min(...kickoffTimes)) / (1000 * 60 * 60 * 24))
-        : 0;
-
-    const venueCount = new Set(group.matches.map((m) => `${m.venue.name}|${m.venue.city}`)).size;
+    const scheduleRows = liveFixtures && liveFixtures.length > 0 ? liveFixtures : fallbackScheduleRows;
     const impliedLookup = new Map<string, number>(
         teamMarketView.map((entry): [string, number] => [entry.team.code, entry.impliedPct ?? 0])
     );
@@ -582,20 +554,79 @@ export const GroupPage: React.FC = () => {
                                             className="text-[10px] uppercase tracking-[0.08em] mb-1"
                                             style={{ fontFamily: 'var(--font-ui)', fontWeight: 800, color: 'var(--gray-500)' }}
                                         >
-                                            Schedule Load
+                                            Group Match Schedule
                                         </div>
-                                        <div
-                                            className="text-base"
-                                            style={{ fontFamily: 'var(--font-data)', fontWeight: 700, color: 'var(--gray-900)' }}
-                                        >
-                                            {venueCount} venues
-                                        </div>
-                                        <div
-                                            className="text-[12px] uppercase"
-                                            style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, color: 'var(--gray-500)' }}
-                                        >
-                                            {scheduleWindowDays} day window
-                                        </div>
+                                        {scheduleRows.length > 0 ? (
+                                            <div className="overflow-x-auto">
+                                                <table className="w-full" style={{ minWidth: '430px' }}>
+                                                    <thead>
+                                                        <tr>
+                                                            <th
+                                                                className="text-left pb-1 pr-2 text-[10px] uppercase"
+                                                                style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, color: 'var(--gray-500)' }}
+                                                            >
+                                                                Date
+                                                            </th>
+                                                            <th
+                                                                className="text-left pb-1 pr-2 text-[10px] uppercase"
+                                                                style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, color: 'var(--gray-500)' }}
+                                                            >
+                                                                Match
+                                                            </th>
+                                                            <th
+                                                                className="text-left pb-1 pr-2 text-[10px] uppercase"
+                                                                style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, color: 'var(--gray-500)' }}
+                                                            >
+                                                                Venue
+                                                            </th>
+                                                            <th
+                                                                className="text-left pb-1 text-[10px] uppercase"
+                                                                style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, color: 'var(--gray-500)' }}
+                                                            >
+                                                                Kickoff
+                                                            </th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {scheduleRows.map((match) => (
+                                                            <tr key={match.id}>
+                                                                <td
+                                                                    className="py-1 pr-2 text-[12px] align-top whitespace-nowrap"
+                                                                    style={{ fontFamily: 'var(--font-data)', fontWeight: 700, color: 'var(--gray-800)' }}
+                                                                >
+                                                                    {formatScheduleDate(match.kickoff)}
+                                                                </td>
+                                                                <td
+                                                                    className="py-1 pr-2 text-[12px] align-top"
+                                                                    style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, color: 'var(--gray-900)' }}
+                                                                >
+                                                                    {match.homeTeam} vs {match.awayTeam}
+                                                                </td>
+                                                                <td
+                                                                    className="py-1 pr-2 text-[12px] align-top whitespace-nowrap"
+                                                                    style={{ fontFamily: 'var(--font-ui)', color: 'var(--gray-800)' }}
+                                                                >
+                                                                    {match.city ? `${match.venue}, ${match.city}` : match.venue}
+                                                                </td>
+                                                                <td
+                                                                    className="py-1 text-[12px] align-top whitespace-nowrap"
+                                                                    style={{ fontFamily: 'var(--font-data)', color: 'var(--gray-800)' }}
+                                                                >
+                                                                    {formatScheduleTime(match.kickoff)}
+                                                                </td>
+                                                            </tr>
+                                                        ))}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        ) : (
+                                            <div
+                                                className="text-[12px]"
+                                                style={{ fontFamily: 'var(--font-ui)', color: 'var(--gray-500)' }}
+                                            >
+                                                Group fixtures will appear when the schedule feed is live.
+                                            </div>
+                                        )}
                                     </div>
 
                                     <div className="border p-3" style={{ borderColor: 'var(--gray-300)', background: 'var(--gray-50)' }}>
@@ -763,11 +794,12 @@ export const GroupPage: React.FC = () => {
                         </section>
                     )}
 
-                    {/* ═══ Outright Odds Table ═══ */}
-                    <section
-                        className="mb-16 rounded-[14px] border p-6 md:p-8"
-                        style={{ borderColor: 'var(--gray-200)' }}
-                    >
+                    {/* ═══ Group Advancement Odds Table ═══ */}
+                    {hasAdvancementOdds && (
+                        <section
+                            className="mb-16 rounded-[14px] border p-6 md:p-8"
+                            style={{ borderColor: 'var(--gray-200)' }}
+                        >
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
                             {teamMarketView.slice(0, 4).map((entry) => {
                                 const width = Math.max(
@@ -816,13 +848,13 @@ export const GroupPage: React.FC = () => {
                                 className="text-xl uppercase tracking-[-0.02em]"
                                 style={{ fontFamily: 'var(--font-ui)', fontWeight: 800 }}
                             >
-                                Outright Winner Odds
+                                To Advance From Group {upperLetter}
                             </h3>
                             <span
                                 className="text-[13px] uppercase"
                                 style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, color: 'var(--gray-500)' }}
                             >
-                                Tournament
+                                Qualification
                             </span>
                         </div>
 
@@ -832,7 +864,7 @@ export const GroupPage: React.FC = () => {
                                     <tr>
                                         <th>Team</th>
                                         <th className="text-right">Odds</th>
-                                        <th className="text-right">Implied Win Prob</th>
+                                        <th className="text-right">Implied Adv. Prob</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -877,9 +909,9 @@ export const GroupPage: React.FC = () => {
                                                             {odds.odds}
                                                         </span>
                                                     ) : (
-                                                        <span style={{ color: 'var(--gray-500)' }}>TBD</span>
-                                                    )}
-                                                </td>
+                                                            <span style={{ color: 'var(--gray-500)' }}>TBD</span>
+                                                        )}
+                                                    </td>
                                                 <td className="text-right">
                                                     {odds ? (
                                                         <div className="flex items-center justify-end gap-3">
@@ -916,7 +948,8 @@ export const GroupPage: React.FC = () => {
                                 </tbody>
                             </table>
                         </div>
-                    </section>
+                        </section>
+                    )}
 
                     {/* ═══ Match Schedule ═══ */}
                     <section

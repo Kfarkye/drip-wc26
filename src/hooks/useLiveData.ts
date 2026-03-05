@@ -60,6 +60,16 @@ export interface LiveTeamOdds {
     source?: string;
 }
 
+export interface GroupFixture {
+    id: string;
+    kickoff: string;
+    homeTeam: string;
+    awayTeam: string;
+    venue: string;
+    city: string | null;
+    matchNumber: number | null;
+}
+
 // ── Static fallback data (editorial baseline) ──────────────────────────────
 
 const STATIC_FAVORITES: LiveFavorite[] = [
@@ -303,6 +313,198 @@ export function getStaticTeamOdds(teamCode: string): LiveTeamOdds {
         isLongshot: true,
         isLive: false,
     };
+}
+
+const normalizeMarket = (market: string): string =>
+    market
+        .trim()
+        .toLowerCase()
+        .replace(/[_-]+/g, ' ')
+        .replace(/\s+/g, ' ');
+
+const isAdvancementMarket = (market: unknown): boolean => {
+    if (typeof market !== 'string' || market.trim().length === 0) return false;
+    const normalized = normalizeMarket(market);
+    if (normalized.includes('winner') || normalized.includes('outright')) return false;
+    return normalized.includes('advance') || normalized.includes('qualif') || normalized.includes('progress');
+};
+
+const readString = (row: Record<string, unknown>, keys: string[]): string | null => {
+    for (const key of keys) {
+        const value = row[key];
+        if (typeof value === 'string') {
+            const trimmed = value.trim();
+            if (trimmed.length > 0) return trimmed;
+        }
+    }
+    return null;
+};
+
+const readNumber = (row: Record<string, unknown>, keys: string[]): number | null => {
+    for (const key of keys) {
+        const value = row[key];
+        if (typeof value === 'number' && Number.isFinite(value)) return value;
+        if (typeof value === 'string') {
+            const parsed = Number(value);
+            if (Number.isFinite(parsed)) return parsed;
+        }
+    }
+    return null;
+};
+
+const slugToTeamName = (slug: string | null): string | null => {
+    if (!slug) return null;
+    return slug
+        .split('-')
+        .filter(Boolean)
+        .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1))
+        .join(' ');
+};
+
+/**
+ * useGroupAdvancementOdds: Multi-book consensus "to advance" pricing by group.
+ * Hides outright/group-winner markets to keep group pages context-correct.
+ */
+export function useGroupAdvancementOdds(groupLetter: string) {
+    return useQuery<Record<string, LiveTeamOdds>>({
+        queryKey: ['wc-group-advancement-odds', groupLetter],
+        queryFn: async () => {
+            if (!isSupabaseConfigured()) return {};
+
+            try {
+                const { data, error } = await supabase
+                    .from('wc26_odds')
+                    .select('market, team_slug, bookmaker, american_odds, implied_probability, wc26_teams!inner(fifa_code, name, group_letter)')
+                    .eq('wc26_teams.group_letter', groupLetter.toUpperCase());
+
+                if (error || !data?.length) return {};
+
+                const advancementRows = (data as Array<Record<string, unknown>>)
+                    .filter((row) => isAdvancementMarket(row.market));
+
+                if (advancementRows.length === 0) return {};
+
+                const teamMap: Record<string, { odds: number; implied: number; bookmaker: string }[]> = {};
+
+                for (const row of advancementRows) {
+                    const team = row.wc26_teams as { fifa_code?: string } | null;
+                    const code = team?.fifa_code;
+                    if (!code) continue;
+
+                    const implied = Number(row.implied_probability);
+                    const americanOdds = Number(row.american_odds);
+                    const bookmaker = typeof row.bookmaker === 'string' ? row.bookmaker : 'sportsbook';
+
+                    if (!Number.isFinite(implied) || !Number.isFinite(americanOdds)) continue;
+
+                    if (!teamMap[code]) teamMap[code] = [];
+                    teamMap[code].push({
+                        odds: americanOdds,
+                        implied,
+                        bookmaker,
+                    });
+                }
+
+                const codes = Object.keys(teamMap);
+                if (codes.length === 0) return {};
+
+                let maxImplied = 0;
+                for (const rows of Object.values(teamMap)) {
+                    const best = Math.max(...rows.map((entry) => entry.implied));
+                    if (best > maxImplied) maxImplied = best;
+                }
+
+                const result: Record<string, LiveTeamOdds> = {};
+                for (const code of codes) {
+                    const rows = teamMap[code];
+                    const avgImplied = rows.reduce((sum, entry) => sum + entry.implied, 0) / rows.length;
+                    const bestOdds = rows.reduce((best, entry) => (entry.odds > best ? entry.odds : best), rows[0].odds);
+                    const pct = maxImplied > 0 ? Math.round((avgImplied / maxImplied) * 100) : 0;
+
+                    result[code] = {
+                        odds: formatOdds(bestOdds),
+                        implied: avgImplied >= 0.01 ? `${(avgImplied * 100).toFixed(1)}%` : '<1%',
+                        pct,
+                        isLongshot: avgImplied < 0.02,
+                        isLive: true,
+                        source: rows[0].bookmaker,
+                    };
+                }
+
+                return result;
+            } catch {
+                return {};
+            }
+        },
+        staleTime: 60_000,
+        refetchInterval: 120_000,
+    });
+}
+
+/**
+ * useGroupFixtures: Group-stage fixture rows from wc26_fixtures.
+ */
+export function useGroupFixtures(groupLetter: string) {
+    return useQuery<GroupFixture[]>({
+        queryKey: ['wc-group-fixtures', groupLetter],
+        queryFn: async () => {
+            if (!isSupabaseConfigured()) return [];
+
+            const targetGroup = groupLetter.toUpperCase();
+            const candidateColumns = ['group_letter', 'group'];
+            let rows: Array<Record<string, unknown>> = [];
+
+            for (const column of candidateColumns) {
+                const { data, error } = await supabase
+                    .from('wc26_fixtures')
+                    .select('*')
+                    .eq(column, targetGroup);
+
+                if (error) continue;
+                if (Array.isArray(data) && data.length > 0) {
+                    rows = data as Array<Record<string, unknown>>;
+                    break;
+                }
+            }
+
+            if (rows.length === 0) return [];
+
+            const fixtures: GroupFixture[] = rows.map((row, index) => {
+                const kickoff = readString(row, ['kickoff', 'start_time', 'commence_time', 'match_time']) || '';
+                const homeTeam = readString(row, ['home_team', 'home_name', 'home']) || slugToTeamName(readString(row, ['home_slug'])) || 'TBD';
+                const awayTeam = readString(row, ['away_team', 'away_name', 'away']) || slugToTeamName(readString(row, ['away_slug'])) || 'TBD';
+                const venue = readString(row, ['venue_name', 'venue', 'stadium']) || 'Venue TBD';
+                const city = readString(row, ['venue_city', 'city']);
+                const id = readString(row, ['fixture_id', 'id']) || `${targetGroup}-${index + 1}`;
+
+                return {
+                    id,
+                    kickoff,
+                    homeTeam,
+                    awayTeam,
+                    venue,
+                    city,
+                    matchNumber: readNumber(row, ['match_number']),
+                };
+            }).filter((fixture) => fixture.kickoff.length > 0);
+
+            fixtures.sort((a, b) => {
+                const timeA = Date.parse(a.kickoff);
+                const timeB = Date.parse(b.kickoff);
+                if (Number.isFinite(timeA) && Number.isFinite(timeB) && timeA !== timeB) {
+                    return timeA - timeB;
+                }
+                const matchA = a.matchNumber ?? Number.MAX_SAFE_INTEGER;
+                const matchB = b.matchNumber ?? Number.MAX_SAFE_INTEGER;
+                if (matchA !== matchB) return matchA - matchB;
+                return a.id.localeCompare(b.id);
+            });
+
+            return fixtures;
+        },
+        staleTime: 300_000,
+        refetchInterval: 300_000,
+    });
 }
 
 /**
