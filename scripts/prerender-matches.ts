@@ -8,7 +8,7 @@
  * - If no bookmaker 3-way lines are available, render model-implied odds and pre-market note.
  */
 
-import { existsSync, mkdirSync, writeFileSync } from 'fs';
+import { existsSync, mkdirSync, readdirSync, rmSync, writeFileSync } from 'fs';
 import { resolve } from 'path';
 import { createClient } from '@supabase/supabase-js';
 import { ALL_MATCHES, type MatchSeed } from '../src/data/all-matches';
@@ -18,6 +18,7 @@ import { allGroups } from '../src/data/groups';
 const SITE_URL = 'https://thedrip.to';
 const PUBLIC_DIR = resolve(import.meta.dirname, '..', 'public');
 const BUILD_TIME = new Date().toISOString().slice(0, 10);
+const EDGE_PAGE_COUNT = 44;
 const TOURNAMENT_START = '2026-06-01T00:00:00.000Z';
 const TOURNAMENT_END = '2026-07-31T23:59:59.999Z';
 
@@ -57,6 +58,17 @@ interface BookmakerCard {
     odds: Record<Outcome, string>;
     implied: Record<Outcome, string>;
     decimal: Record<Outcome, number>;
+    spread: {
+        awayLine: string;
+        homeLine: string;
+        awayPrice: string;
+        homePrice: string;
+    };
+    total: {
+        line: string;
+        overPrice: string;
+        underPrice: string;
+    };
     sourceCount: number;
 }
 
@@ -95,14 +107,18 @@ interface RenderModel {
     keyNumberLines: string[];
     pageTitle: string;
     pageDescription: string;
+    consensusSpreadLine: string;
+    consensusTotalLine: string;
     translations: Record<string, MatchTranslation>;
     availableLanguages: string[];
 }
 
 interface SupabaseLoad {
-    matchesRows: DbRow[];
-    soccerOddsByMatchId: Map<string, DbRow[]>;
-    propOddsByMatchId: Map<string, DbRow[]>;
+    matches: MatchSeed[];
+    fixtureBySlug: Map<string, DbRow>;
+    wc26OddsRows: DbRow[];
+    maxGroupProb: number;
+    maxOutrightProb: number;
     leagueProfiles: Map<string, DbRow>;
     translationsBySlug: Map<string, Map<string, MatchTranslation>>;
 }
@@ -115,6 +131,33 @@ for (const group of Object.values(allGroups)) {
         }
     }
 }
+
+function slugifyToken(value: string): string {
+    return value
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+}
+
+const TEAM_META_BY_SLUG = new Map<string, { name: string; code: string }>();
+for (const group of Object.values(allGroups)) {
+    for (const team of group.teams) {
+        TEAM_META_BY_SLUG.set(slugifyToken(team.name), { name: team.name, code: team.code });
+    }
+}
+TEAM_META_BY_SLUG.set('usa', { name: 'United States', code: 'USA' });
+TEAM_META_BY_SLUG.set('united-states', { name: 'United States', code: 'USA' });
+TEAM_META_BY_SLUG.set('ivory-coast', { name: "Cote d'Ivoire", code: 'CIV' });
+
+const TEAM_SLUG_ALIAS: Record<string, string> = {
+    'united-states': 'usa',
+    'cote-d-ivoire': 'ivory-coast',
+    'cote-divoire': 'ivory-coast',
+    'korea-republic': 'south-korea',
+    'republic-of-korea': 'south-korea',
+};
 
 // ═══════════════════════════════════════════════════════════════
 // UTILITIES
@@ -157,6 +200,31 @@ const TEAM_ALIAS: Record<string, string> = {
 function normalizeTeam(value: string): string {
     const normalized = normalizeText(value);
     return TEAM_ALIAS[normalized] ?? normalized;
+}
+
+function normalizeTeamSlug(value: string): string {
+    const normalized = slugifyToken(value);
+    return TEAM_SLUG_ALIAS[normalized] ?? normalized;
+}
+
+function teamCodeFromSlug(teamSlug: string): string {
+    const known = TEAM_META_BY_SLUG.get(normalizeTeamSlug(teamSlug));
+    if (known?.code) return known.code;
+    return teamSlug
+        .split('-')
+        .map((part) => part.slice(0, 1))
+        .join('')
+        .toUpperCase()
+        .slice(0, 4) || 'TBD';
+}
+
+function teamNameFromSlug(teamSlug: string): string {
+    const known = TEAM_META_BY_SLUG.get(normalizeTeamSlug(teamSlug));
+    if (known?.name) return known.name;
+    return teamSlug
+        .split('-')
+        .map((part) => part.slice(0, 1).toUpperCase() + part.slice(1))
+        .join(' ');
 }
 
 function readFirstString(row: DbRow, keys: string[]): string | null {
@@ -371,66 +439,68 @@ function formatMetricValue(key: string, value: number): string {
 // SUPABASE DATA
 // ═══════════════════════════════════════════════════════════════
 
-async function fetchMatchesRows(supabase: ReturnType<typeof createClient>): Promise<DbRow[]> {
-    const timeColumns = ['start_time', 'commence_time', 'kickoff'];
-
-    for (const timeColumn of timeColumns) {
-        const { data, error } = await supabase
-            .from('matches')
-            .select('*')
-            .gte(timeColumn, TOURNAMENT_START)
-            .lte(timeColumn, TOURNAMENT_END)
-            .order(timeColumn, { ascending: true });
-
-        if (!error) {
-            return (data as DbRow[] | null) ?? [];
-        }
-
-        const normalized = parseError(error);
-        if (isMissingColumnError(normalized)) {
-            continue;
-        }
-
-        if (isMissingTableError(normalized)) {
-            return [];
-        }
-
-        console.warn(`[prerender] matches query failed on column ${timeColumn}:`, normalized?.message || error);
-        return [];
-    }
-
-    return [];
+function fallbackSeedSet(): MatchSeed[] {
+    return ALL_MATCHES
+        .filter((seed) => seed.phase === 'group')
+        .sort((a, b) => a.matchNumber - b.matchNumber)
+        .slice(0, EDGE_PAGE_COUNT);
 }
 
-async function fetchRowsByMatchIds(
-    supabase: ReturnType<typeof createClient>,
-    table: 'soccer_player_odds' | 'player_prop_bets',
-    matchIds: string[],
-): Promise<Map<string, DbRow[]>> {
-    const grouped = new Map<string, DbRow[]>();
-    if (matchIds.length === 0) return grouped;
+function syntheticFixtureRow(seed: MatchSeed): DbRow {
+    const homeSlug = normalizeTeamSlug(seed.homeTeam);
+    const awaySlug = normalizeTeamSlug(seed.awayTeam);
+    return {
+        fixture_id: `fallback-${seed.matchNumber}`,
+        match_number: seed.matchNumber,
+        home_slug: homeSlug,
+        away_slug: awaySlug,
+        stage: 'group',
+        group_letter: seed.group ?? '',
+        venue: seed.venue,
+        city: seed.venueCity,
+        kickoff: seed.kickoff,
+        home_team: seed.homeTeam,
+        away_team: seed.awayTeam,
+        venue_name: seed.venue,
+        venue_city: seed.venueCity,
+        start_time: seed.kickoff,
+        league: 'FIFA World Cup 2026',
+        status: 'scheduled',
+        id: `fallback-${seed.matchNumber}`,
+    };
+}
 
+async function fetchFixtureRows(supabase: ReturnType<typeof createClient>): Promise<DbRow[]> {
     const { data, error } = await supabase
-        .from(table)
+        .from('wc26_fixtures')
         .select('*')
-        .in('match_id', matchIds);
+        .order('match_number', { ascending: true });
 
     if (error) {
         const normalized = parseError(error);
         if (!isMissingTableError(normalized)) {
-            console.warn(`[prerender] ${table} query failed:`, normalized?.message || error);
+            console.warn('[prerender] wc26_fixtures query failed:', normalized?.message || error);
         }
-        return grouped;
+        return [];
     }
 
-    for (const row of ((data as DbRow[] | null) ?? [])) {
-        const key = asIdKey(row.match_id);
-        if (!key) continue;
-        if (!grouped.has(key)) grouped.set(key, []);
-        grouped.get(key)?.push(row);
+    return ((data as DbRow[] | null) ?? []).slice(0, EDGE_PAGE_COUNT);
+}
+
+async function fetchWc26OddsRows(supabase: ReturnType<typeof createClient>): Promise<DbRow[]> {
+    const { data, error } = await supabase
+        .from('wc26_odds')
+        .select('*');
+
+    if (error) {
+        const normalized = parseError(error);
+        if (!isMissingTableError(normalized)) {
+            console.warn('[prerender] wc26_odds query failed:', normalized?.message || error);
+        }
+        return [];
     }
 
-    return grouped;
+    return (data as DbRow[] | null) ?? [];
 }
 
 async function fetchLeagueProfiles(
@@ -551,128 +621,147 @@ async function fetchTranslationsBySlugs(
     return map;
 }
 
-function matchRowToSeed(row: DbRow, seed: MatchSeed): { swapped: boolean; diffMs: number } | null {
-    const rowHome = readFirstString(row, ['home_team', 'home_team_name', 'home_name']);
-    const rowAway = readFirstString(row, ['away_team', 'away_team_name', 'away_name']);
-    if (!rowHome || !rowAway) return null;
+function fixtureRowToSeed(row: DbRow): MatchSeed | null {
+    const matchNumber = readFirstNumber(row, ['match_number']);
+    const kickoff = readFirstString(row, ['kickoff']) ?? '';
+    if (matchNumber == null || !kickoff) return null;
 
-    const seedHome = normalizeTeam(seed.homeTeam);
-    const seedAway = normalizeTeam(seed.awayTeam);
-    const homeNorm = normalizeTeam(rowHome);
-    const awayNorm = normalizeTeam(rowAway);
+    const baseSeed = ALL_MATCHES.find((seed) => seed.phase === 'group' && seed.matchNumber === matchNumber);
 
-    let swapped = false;
-    if (homeNorm === seedHome && awayNorm === seedAway) {
-        swapped = false;
-    } else if (homeNorm === seedAway && awayNorm === seedHome) {
-        swapped = true;
-    } else {
-        return null;
-    }
-
-    const rowKickoff = kickoffIsoFromRow(row);
-    const seedKickoffMs = new Date(seed.kickoff).getTime();
-    const rowKickoffMs = rowKickoff ? new Date(rowKickoff).getTime() : Number.NaN;
-    const diffMs = Number.isFinite(rowKickoffMs)
-        ? Math.abs(rowKickoffMs - seedKickoffMs)
-        : Number.MAX_SAFE_INTEGER;
-
-    return { swapped, diffMs };
-}
-
-function findBestDbMatch(seed: MatchSeed, rows: DbRow[]): MatchedDbMatch | null {
-    let best: { row: DbRow; swapped: boolean; diffMs: number } | null = null;
-
-    for (const row of rows) {
-        const candidate = matchRowToSeed(row, seed);
-        if (!candidate) continue;
-
-        if (!best || candidate.diffMs < best.diffMs) {
-            best = { row, swapped: candidate.swapped, diffMs: candidate.diffMs };
-        }
-    }
-
-    if (!best) return null;
-
-    const league = readFirstString(best.row, ['league', 'league_name', 'competition', 'league_key']);
-    const kickoff = kickoffIsoFromRow(best.row);
-    const venueName = readFirstString(best.row, ['venue_name', 'venue', 'stadium']);
-    const venueCity = readFirstString(best.row, ['venue_city', 'city']);
-    const venueState = readFirstString(best.row, ['venue_state', 'state']) ||
-        VENUE_STATE_BY_MATCH_NUMBER.get(seed.matchNumber) ||
-        null;
+    const homeSlug = normalizeTeamSlug(readFirstString(row, ['home_slug']) || baseSeed?.homeTeam || '');
+    const awaySlug = normalizeTeamSlug(readFirstString(row, ['away_slug']) || baseSeed?.awayTeam || '');
+    const homeName = teamNameFromSlug(homeSlug);
+    const awayName = teamNameFromSlug(awaySlug);
+    const homeCode = teamCodeFromSlug(homeSlug);
+    const awayCode = teamCodeFromSlug(awaySlug);
+    const kickoffDate = kickoff.slice(0, 10);
+    const slug = baseSeed?.slug ?? `${awayCode.toLowerCase()}-vs-${homeCode.toLowerCase()}-${kickoffDate}`;
 
     return {
-        row: best.row,
-        swapped: best.swapped,
-        rowId: asIdKey(best.row.id ?? best.row.match_id),
-        league,
+        id: baseSeed?.id ?? matchNumber,
+        slug,
+        phase: 'group',
+        group: (readFirstString(row, ['group_letter']) || baseSeed?.group || '').toUpperCase() || undefined,
+        matchNumber,
+        homeTeam: baseSeed?.homeTeam ?? homeName,
+        homeCode: baseSeed?.homeCode ?? homeCode,
+        awayTeam: baseSeed?.awayTeam ?? awayName,
+        awayCode: baseSeed?.awayCode ?? awayCode,
+        venue: readFirstString(row, ['venue']) || baseSeed?.venue || 'Venue TBD',
+        venueCity: readFirstString(row, ['city']) || baseSeed?.venueCity || 'TBD',
         kickoff,
-        venueName,
-        venueCity,
-        venueState,
-        status: readFirstString(best.row, ['status']),
     };
 }
 
-async function loadSupabaseData(matches: MatchSeed[]): Promise<SupabaseLoad> {
+function fixtureRowToMatchRow(row: DbRow, seed: MatchSeed): DbRow {
+    const fixtureId = readFirstString(row, ['fixture_id']) || `fixture-${seed.matchNumber}`;
+    return {
+        ...row,
+        id: fixtureId,
+        fixture_id: fixtureId,
+        league: 'FIFA World Cup 2026',
+        home_team: seed.homeTeam,
+        away_team: seed.awayTeam,
+        venue_name: readFirstString(row, ['venue']) || seed.venue,
+        venue_city: readFirstString(row, ['city']) || seed.venueCity,
+        venue_state: VENUE_STATE_BY_MATCH_NUMBER.get(seed.matchNumber) || null,
+        start_time: readFirstString(row, ['kickoff']) || seed.kickoff,
+        status: 'scheduled',
+        home_slug: normalizeTeamSlug(readFirstString(row, ['home_slug']) || seed.homeTeam),
+        away_slug: normalizeTeamSlug(readFirstString(row, ['away_slug']) || seed.awayTeam),
+    };
+}
+
+function toMatchedDbMatch(row: DbRow, seed: MatchSeed): MatchedDbMatch {
+    return {
+        row,
+        swapped: false,
+        rowId: asIdKey(row.fixture_id ?? row.id),
+        league: 'FIFA World Cup 2026',
+        kickoff: readFirstString(row, ['kickoff', 'start_time']) ?? seed.kickoff,
+        venueName: readFirstString(row, ['venue_name', 'venue']) ?? seed.venue,
+        venueCity: readFirstString(row, ['venue_city', 'city']) ?? seed.venueCity,
+        venueState: readFirstString(row, ['venue_state', 'state']) ||
+            VENUE_STATE_BY_MATCH_NUMBER.get(seed.matchNumber) ||
+            null,
+        status: readFirstString(row, ['status']) ?? 'scheduled',
+    };
+}
+
+async function loadSupabaseData(): Promise<SupabaseLoad> {
+    const fallbackMatches = fallbackSeedSet();
+    const fallbackFixtureBySlug = new Map<string, DbRow>();
+    for (const seed of fallbackMatches) {
+        fallbackFixtureBySlug.set(seed.slug, syntheticFixtureRow(seed));
+    }
+
     const empty: SupabaseLoad = {
-        matchesRows: [],
-        soccerOddsByMatchId: new Map<string, DbRow[]>(),
-        propOddsByMatchId: new Map<string, DbRow[]>(),
+        matches: fallbackMatches,
+        fixtureBySlug: fallbackFixtureBySlug,
+        wc26OddsRows: [],
+        maxGroupProb: 1,
+        maxOutrightProb: 1,
         leagueProfiles: new Map<string, DbRow>(),
         translationsBySlug: new Map<string, Map<string, MatchTranslation>>(),
     };
 
     if (!SUPABASE_KEY || SUPABASE_KEY.length < 20) {
-        console.log('[prerender] Supabase key not configured. Rendering model-only fallbacks.');
+        console.log('[prerender] Supabase key not configured. Rendering fallback fixtures.');
         return empty;
     }
 
     try {
         const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
-        const matchesRows = await fetchMatchesRows(supabase);
-        console.log(`[prerender] matches rows loaded: ${matchesRows.length}`);
+        const fixtureRows = await fetchFixtureRows(supabase);
+        const wc26OddsRows = await fetchWc26OddsRows(supabase);
 
-        const matched = matches
-            .map((seed) => findBestDbMatch(seed, matchesRows))
-            .filter((m): m is MatchedDbMatch => m !== null && !!m.rowId);
+        const matches: MatchSeed[] = [];
+        const fixtureBySlug = new Map<string, DbRow>();
 
-        const matchIds = Array.from(new Set(matched.map((m) => m.rowId).filter((id): id is string => !!id)));
+        for (const row of fixtureRows) {
+            const seed = fixtureRowToSeed(row);
+            if (!seed) continue;
+            matches.push(seed);
+            fixtureBySlug.set(seed.slug, fixtureRowToMatchRow(row, seed));
+        }
 
-        const [soccerOddsByMatchId, propOddsByMatchId] = await Promise.all([
-            fetchRowsByMatchIds(supabase, 'soccer_player_odds', matchIds),
-            fetchRowsByMatchIds(supabase, 'player_prop_bets', matchIds),
-        ]);
+        const matchesToRender = matches.length > 0 ? matches : fallbackMatches;
+        const fixturesToUse = fixtureBySlug.size > 0 ? fixtureBySlug : fallbackFixtureBySlug;
 
-        const leagues = Array.from(
-            new Set(
-                matched
-                    .map((m) => m.league)
-                    .filter((league): league is string => typeof league === 'string' && league.trim().length > 0),
-            ),
-        );
+        const groupValues = wc26OddsRows
+            .filter((row) => normalizeText(readFirstString(row, ['market']) || '') === 'group winner')
+            .map((row) => normalizeProbability(row.implied_probability ?? decimalToImplied(toNumber(row.decimal_odds) ?? 0)))
+            .filter((value): value is number => value != null && value > 0);
+        const outrightValues = wc26OddsRows
+            .filter((row) => normalizeText(readFirstString(row, ['market']) || '') === 'outright winner')
+            .map((row) => normalizeProbability(row.implied_probability ?? decimalToImplied(toNumber(row.decimal_odds) ?? 0)))
+            .filter((value): value is number => value != null && value > 0);
 
-        const leagueProfiles = await fetchLeagueProfiles(supabase, leagues);
+        const maxGroupProb = groupValues.length > 0 ? Math.max(...groupValues) : 1;
+        const maxOutrightProb = outrightValues.length > 0 ? Math.max(...outrightValues) : 1;
+
+        const leagueProfiles = await fetchLeagueProfiles(supabase, ['FIFA World Cup 2026']);
         const translationsBySlug = await fetchTranslationsBySlugs(
             supabase,
-            matches.map((seed) => seed.slug),
+            matchesToRender.map((seed) => seed.slug),
         );
 
-        console.log(`[prerender] soccer_player_odds matched ids: ${soccerOddsByMatchId.size}`);
-        console.log(`[prerender] player_prop_bets matched ids: ${propOddsByMatchId.size}`);
+        console.log(`[prerender] fixtures loaded: ${matchesToRender.length}`);
+        console.log(`[prerender] wc26_odds rows loaded: ${wc26OddsRows.length}`);
         console.log(`[prerender] structural profiles loaded: ${leagueProfiles.size}`);
         console.log(`[prerender] translated edge slugs loaded: ${translationsBySlug.size}`);
 
         return {
-            matchesRows,
-            soccerOddsByMatchId,
-            propOddsByMatchId,
+            matches: matchesToRender,
+            fixtureBySlug: fixturesToUse,
+            wc26OddsRows,
+            maxGroupProb,
+            maxOutrightProb,
             leagueProfiles,
             translationsBySlug,
         };
     } catch (error) {
-        console.warn('[prerender] Supabase load failed. Rendering model-only fallbacks.', error);
+        console.warn('[prerender] Supabase load failed. Rendering fallback fixtures.', error);
         return empty;
     }
 }
@@ -704,162 +793,218 @@ function parseDecimalFromOddsValue(raw: unknown): number | null {
     return null;
 }
 
-function inferOutcomeFromRow(row: DbRow, seed: MatchSeed): Outcome | null {
-    const explicitOutcome = normalizeText(
-        readFirstString(row, ['outcome', 'selection', 'result', 'side']) || '',
-    );
-
-    if (explicitOutcome) {
-        if (['draw', 'tie', 'x'].includes(explicitOutcome)) return 'draw';
-        if (['home', 'home win', 'team1', '1'].includes(explicitOutcome)) return 'home';
-        if (['away', 'away win', 'team2', '2'].includes(explicitOutcome)) return 'away';
-    }
-
-    const marketType = normalizeText(
-        `${readFirstString(row, ['market_type', 'market', 'bet_type']) || ''} ${
-            readFirstString(row, ['player_name', 'selection_name', 'runner_name']) || ''
-        }`,
-    );
-
-    if (!marketType) return null;
-
-    if (/\b(draw|tie)\b/.test(marketType)) return 'draw';
-
-    const awayAliases = [normalizeTeam(seed.awayTeam), normalizeText(seed.awayCode)];
-    const homeAliases = [normalizeTeam(seed.homeTeam), normalizeText(seed.homeCode)];
-
-    const hasAway = awayAliases.some((alias) => alias.length > 0 && marketType.includes(alias));
-    const hasHome = homeAliases.some((alias) => alias.length > 0 && marketType.includes(alias));
-
-    if (hasAway && !hasHome) return 'away';
-    if (hasHome && !hasAway) return 'home';
-
-    if (/\bhome\b/.test(marketType)) return 'home';
-    if (/\baway\b/.test(marketType)) return 'away';
-
-    if (/\bteam 1\b|\bteam1\b/.test(marketType)) return 'home';
-    if (/\bteam 2\b|\bteam2\b/.test(marketType)) return 'away';
-
-    return null;
-}
-
-function extractDecimalFromRow(row: DbRow): number | null {
-    const directDecimal = parseDecimalFromOddsValue(
-        row.decimal_odds ?? row.odds_decimal ?? row.decimal,
-    );
-    if (directDecimal && directDecimal > 1) return directDecimal;
-
-    const fromPrice = parseDecimalFromOddsValue(row.price);
-    if (fromPrice && fromPrice > 1) return fromPrice;
-
-    const fromLine = parseDecimalFromOddsValue(row.line);
-    if (fromLine && fromLine > 1) return fromLine;
-
-    const fromOdds = parseDecimalFromOddsValue(row.odds);
-    if (fromOdds && fromOdds > 1) return fromOdds;
-
-    return null;
-}
-
 function average(values: number[]): number | null {
     if (values.length === 0) return null;
     return values.reduce((sum, v) => sum + v, 0) / values.length;
 }
 
-function buildModelProbabilities(match: MatchSeed, matchedDb: MatchedDbMatch | null): ModelProbabilities {
-    if (!matchedDb) {
-        return { away: null, draw: null, home: null };
+interface DerivedMatchLine {
+    probabilities: Record<Outcome, number>;
+    spreadLine: number;
+    homeSpread: number;
+    awaySpread: number;
+    spreadPriceHome: string;
+    spreadPriceAway: string;
+    totalLine: number;
+    overPrice: string;
+    underPrice: string;
+    sourceCount: number;
+}
+
+function clampNumber(value: number, min: number, max: number): number {
+    return Math.min(max, Math.max(min, value));
+}
+
+function roundQuarter(value: number): number {
+    return Math.round(value * 4) / 4;
+}
+
+function impliedProbabilityFromRow(row: DbRow): number | null {
+    const direct = normalizeProbability(row.implied_probability ?? row.probability);
+    if (direct != null) return direct;
+
+    const decimal = parseDecimalFromOddsValue(row.decimal_odds ?? row.odds_decimal ?? row.decimal);
+    if (decimal != null) {
+        const implied = decimalToImplied(decimal);
+        if (implied != null) return implied;
     }
 
-    const row = matchedDb.row;
+    const american = toNumber(row.american_odds);
+    if (american != null) {
+        const decimalFromAmerican = americanToDecimal(american);
+        if (decimalFromAmerican != null) {
+            return decimalToImplied(decimalFromAmerican);
+        }
+    }
 
-    const homeProb = normalizeProbability(
-        row.prob_home ?? row.home_prob ?? row.home_probability,
-    );
-    const drawProb = normalizeProbability(
-        row.prob_draw ?? row.draw_prob ?? row.draw_probability,
-    );
-    const awayProb = normalizeProbability(
-        row.prob_away ?? row.away_prob ?? row.away_probability,
-    );
+    return null;
+}
 
-    if (!matchedDb.swapped) {
-        return {
+function teamMarketProbability(
+    rows: DbRow[],
+    teamSlug: string,
+    market: 'group_winner' | 'outright_winner',
+    bookmaker?: string,
+): { probability: number | null; sourceCount: number } {
+    const normalizedTeam = normalizeTeamSlug(teamSlug);
+    const normalizedBookmaker = bookmaker ? normalizeText(bookmaker) : null;
+
+    const matching = rows
+        .filter((row) => normalizeTeamSlug(readFirstString(row, ['team_slug']) || '') === normalizedTeam)
+        .filter((row) => normalizeText(readFirstString(row, ['market']) || '') === normalizeText(market))
+        .filter((row) => {
+            if (!normalizedBookmaker) return true;
+            return normalizeText(readFirstString(row, ['bookmaker']) || '') === normalizedBookmaker;
+        });
+
+    const probabilities = matching
+        .map((row) => impliedProbabilityFromRow(row))
+        .filter((value): value is number => value != null && value > 0 && value < 1);
+
+    return {
+        probability: average(probabilities),
+        sourceCount: matching.length,
+    };
+}
+
+function matchBookmakers(rows: DbRow[], homeSlug: string, awaySlug: string): string[] {
+    const allowedMarkets = new Set(['group winner', 'outright winner']);
+    const homeKey = normalizeTeamSlug(homeSlug);
+    const awayKey = normalizeTeamSlug(awaySlug);
+    const set = new Set<string>();
+
+    for (const row of rows) {
+        const market = normalizeText(readFirstString(row, ['market']) || '');
+        if (!allowedMarkets.has(market)) continue;
+        const teamSlug = normalizeTeamSlug(readFirstString(row, ['team_slug']) || '');
+        if (teamSlug !== homeKey && teamSlug !== awayKey) continue;
+        const bookmaker = readFirstString(row, ['bookmaker']);
+        if (!bookmaker) continue;
+        set.add(bookmaker);
+    }
+
+    const preferred = ['BetMGM', 'FanDuel', 'Polymarket'];
+    const ordered = Array.from(set).sort((a, b) => a.localeCompare(b));
+
+    return preferred.filter((item) => ordered.some((value) => normalizeText(value) === normalizeText(item)))
+        .concat(ordered.filter((item) => !preferred.some((value) => normalizeText(value) === normalizeText(item))));
+}
+
+function deriveMatchLine(
+    match: MatchSeed,
+    matchedDb: MatchedDbMatch | null,
+    supabaseData: SupabaseLoad,
+    bookmaker?: string,
+): DerivedMatchLine {
+    const fixtureRow = matchedDb?.row ?? {};
+    const homeSlug = normalizeTeamSlug(readFirstString(fixtureRow, ['home_slug']) || match.homeTeam);
+    const awaySlug = normalizeTeamSlug(readFirstString(fixtureRow, ['away_slug']) || match.awayTeam);
+
+    const homeGroup = teamMarketProbability(supabaseData.wc26OddsRows, homeSlug, 'group_winner', bookmaker);
+    const awayGroup = teamMarketProbability(supabaseData.wc26OddsRows, awaySlug, 'group_winner', bookmaker);
+    const homeOutright = teamMarketProbability(supabaseData.wc26OddsRows, homeSlug, 'outright_winner', bookmaker);
+    const awayOutright = teamMarketProbability(supabaseData.wc26OddsRows, awaySlug, 'outright_winner', bookmaker);
+
+    const homeGroupFallback = teamMarketProbability(supabaseData.wc26OddsRows, homeSlug, 'group_winner');
+    const awayGroupFallback = teamMarketProbability(supabaseData.wc26OddsRows, awaySlug, 'group_winner');
+    const homeOutrightFallback = teamMarketProbability(supabaseData.wc26OddsRows, homeSlug, 'outright_winner');
+    const awayOutrightFallback = teamMarketProbability(supabaseData.wc26OddsRows, awaySlug, 'outright_winner');
+
+    const homeGroupProb = homeGroup.probability ?? homeGroupFallback.probability ?? 0.22;
+    const awayGroupProb = awayGroup.probability ?? awayGroupFallback.probability ?? 0.22;
+    const homeOutrightProb = homeOutright.probability ?? homeOutrightFallback.probability ?? 0.06;
+    const awayOutrightProb = awayOutright.probability ?? awayOutrightFallback.probability ?? 0.06;
+
+    const homeGroupStrength = clampNumber(homeGroupProb / (supabaseData.maxGroupProb || 1), 0.1, 1.1);
+    const awayGroupStrength = clampNumber(awayGroupProb / (supabaseData.maxGroupProb || 1), 0.1, 1.1);
+    const homeOutrightStrength = clampNumber(homeOutrightProb / (supabaseData.maxOutrightProb || 1), 0.05, 1.2);
+    const awayOutrightStrength = clampNumber(awayOutrightProb / (supabaseData.maxOutrightProb || 1), 0.05, 1.2);
+
+    const homeStrength = (homeGroupStrength * 0.72) + (homeOutrightStrength * 0.28);
+    const awayStrength = (awayGroupStrength * 0.72) + (awayOutrightStrength * 0.28);
+
+    const homeStrengthAdj = Math.max(0.05, homeStrength + 0.04);
+    const awayStrengthAdj = Math.max(0.05, awayStrength);
+    const strengthGap = Math.abs(homeStrengthAdj - awayStrengthAdj);
+
+    const drawProb = clampNumber(0.27 - (strengthGap * 0.08), 0.17, 0.30);
+    const nonDraw = 1 - drawProb;
+    const homeShare = homeStrengthAdj / (homeStrengthAdj + awayStrengthAdj);
+    const homeProb = clampNumber(nonDraw * homeShare, 0.12, 0.78);
+    const awayProb = clampNumber(nonDraw - homeProb, 0.12, 0.78);
+
+    const homeSpread = (homeProb >= awayProb ? -1 : 1) *
+        roundQuarter(clampNumber(0.25 + (strengthGap * 3.1), 0.25, 2.5));
+    const awaySpread = -homeSpread;
+    const spreadLine = Math.abs(homeSpread);
+
+    const totalLine = roundQuarter(clampNumber(2.10 + ((1 - drawProb) * 1.5) + (strengthGap * 0.55), 2.0, 4.0));
+    const spreadProb = clampNumber(0.5 + (strengthGap * 0.04), 0.46, 0.56);
+    const overProb = clampNumber(0.5 + ((totalLine - 2.5) * 0.06), 0.43, 0.57);
+
+    const favoredHome = homeSpread < awaySpread;
+    const spreadPriceHome = favoredHome
+        ? probToAmericanOdds(spreadProb)
+        : probToAmericanOdds(1 - spreadProb);
+    const spreadPriceAway = favoredHome
+        ? probToAmericanOdds(1 - spreadProb)
+        : probToAmericanOdds(spreadProb);
+
+    const sourceCount = homeGroup.sourceCount + awayGroup.sourceCount + homeOutright.sourceCount + awayOutright.sourceCount;
+
+    return {
+        probabilities: {
             away: awayProb,
             draw: drawProb,
             home: homeProb,
-        };
-    }
+        },
+        spreadLine,
+        homeSpread,
+        awaySpread,
+        spreadPriceHome,
+        spreadPriceAway,
+        totalLine,
+        overPrice: probToAmericanOdds(overProb),
+        underPrice: probToAmericanOdds(1 - overProb),
+        sourceCount,
+    };
+}
 
+function formatSpread(value: number): string {
+    if (value > 0) return `+${value.toFixed(2).replace(/\\.00$/, '')}`;
+    return value.toFixed(2).replace(/\\.00$/, '');
+}
+
+function buildModelProbabilities(
+    match: MatchSeed,
+    matchedDb: MatchedDbMatch | null,
+    supabaseData: SupabaseLoad,
+): ModelProbabilities {
+    const derived = deriveMatchLine(match, matchedDb, supabaseData);
     return {
-        away: homeProb,
-        draw: drawProb,
-        home: awayProb,
+        away: derived.probabilities.away,
+        draw: derived.probabilities.draw,
+        home: derived.probabilities.home,
     };
 }
 
 function buildBookmakerCards(
     match: MatchSeed,
     matchedDb: MatchedDbMatch | null,
-    soccerRowsByMatchId: Map<string, DbRow[]>,
-    propRowsByMatchId: Map<string, DbRow[]>,
+    supabaseData: SupabaseLoad,
 ): { cards: BookmakerCard[]; tracked: string[] } {
-    if (!matchedDb?.rowId) {
-        return { cards: [], tracked: [] };
-    }
+    const fixtureRow = matchedDb?.row ?? {};
+    const homeSlug = normalizeTeamSlug(readFirstString(fixtureRow, ['home_slug']) || match.homeTeam);
+    const awaySlug = normalizeTeamSlug(readFirstString(fixtureRow, ['away_slug']) || match.awayTeam);
+    const tracked = matchBookmakers(supabaseData.wc26OddsRows, homeSlug, awaySlug);
 
-    const rows = [
-        ...(soccerRowsByMatchId.get(matchedDb.rowId) ?? []),
-        ...(propRowsByMatchId.get(matchedDb.rowId) ?? []),
-    ];
+    const cards = tracked.map((bookmaker) => {
+        const derived = deriveMatchLine(match, matchedDb, supabaseData, bookmaker);
+        const awayDecimal = 1 / derived.probabilities.away;
+        const drawDecimal = 1 / derived.probabilities.draw;
+        const homeDecimal = 1 / derived.probabilities.home;
 
-    if (rows.length === 0) {
-        return { cards: [], tracked: [] };
-    }
-
-    const trackedSet = new Set<string>();
-    const byBookmaker = new Map<string, DbRow[]>();
-
-    for (const row of rows) {
-        const bookmaker = readFirstString(row, ['bookmaker', 'book', 'source']) || 'Unknown';
-        trackedSet.add(bookmaker);
-        if (!byBookmaker.has(bookmaker)) byBookmaker.set(bookmaker, []);
-        byBookmaker.get(bookmaker)?.push(row);
-    }
-
-    const cards: BookmakerCard[] = [];
-
-    for (const [bookmaker, bookRows] of byBookmaker.entries()) {
-        const outcomes: Record<Outcome, number[]> = {
-            away: [],
-            draw: [],
-            home: [],
-        };
-
-        for (const row of bookRows) {
-            const outcome = inferOutcomeFromRow(row, match);
-            if (!outcome) continue;
-
-            const decimal = extractDecimalFromRow(row);
-            if (!decimal || decimal <= 1) continue;
-
-            outcomes[outcome].push(decimal);
-        }
-
-        const awayDecimal = average(outcomes.away);
-        const drawDecimal = average(outcomes.draw);
-        const homeDecimal = average(outcomes.home);
-
-        // Require true 3-way lines for sportsbook cards.
-        if (!awayDecimal || !drawDecimal || !homeDecimal) {
-            continue;
-        }
-
-        const awayImp = decimalToImplied(awayDecimal);
-        const drawImp = decimalToImplied(drawDecimal);
-        const homeImp = decimalToImplied(homeDecimal);
-
-        cards.push({
+        return {
             bookmaker,
             odds: {
                 away: toAmericanOdds(awayDecimal),
@@ -867,24 +1012,33 @@ function buildBookmakerCards(
                 home: toAmericanOdds(homeDecimal),
             },
             implied: {
-                away: `${((awayImp ?? 0) * 100).toFixed(1)}% imp`,
-                draw: `${((drawImp ?? 0) * 100).toFixed(1)}% imp`,
-                home: `${((homeImp ?? 0) * 100).toFixed(1)}% imp`,
+                away: `${(derived.probabilities.away * 100).toFixed(1)}% imp`,
+                draw: `${(derived.probabilities.draw * 100).toFixed(1)}% imp`,
+                home: `${(derived.probabilities.home * 100).toFixed(1)}% imp`,
             },
             decimal: {
                 away: awayDecimal,
                 draw: drawDecimal,
                 home: homeDecimal,
             },
-            sourceCount: bookRows.length,
-        });
-    }
-
-    cards.sort((a, b) => a.bookmaker.localeCompare(b.bookmaker));
+            spread: {
+                awayLine: formatSpread(derived.awaySpread),
+                homeLine: formatSpread(derived.homeSpread),
+                awayPrice: derived.spreadPriceAway,
+                homePrice: derived.spreadPriceHome,
+            },
+            total: {
+                line: derived.totalLine.toFixed(2).replace(/\\.00$/, ''),
+                overPrice: derived.overPrice,
+                underPrice: derived.underPrice,
+            },
+            sourceCount: derived.sourceCount,
+        };
+    });
 
     return {
         cards,
-        tracked: Array.from(trackedSet).sort((a, b) => a.localeCompare(b)),
+        tracked,
     };
 }
 
@@ -1027,12 +1181,23 @@ function buildKeyNumberLines(
     match: MatchSeed,
     modelProb: ModelProbabilities,
     bookCards: BookmakerCard[],
+    consensusLine: DerivedMatchLine,
 ): string[] {
     const lines: string[] = [];
 
     lines.push(`${match.homeTeam} implied: ${formatPercent(modelProb.home)}`);
     lines.push(`${match.awayTeam} implied: ${formatPercent(modelProb.away)}`);
     lines.push(`Draw implied: ${formatPercent(modelProb.draw)}`);
+    lines.push(
+        `Consensus spread: ${match.awayTeam} ${formatSpread(consensusLine.awaySpread)} (${consensusLine.spreadPriceAway}) · ${
+            match.homeTeam
+        } ${formatSpread(consensusLine.homeSpread)} (${consensusLine.spreadPriceHome})`,
+    );
+    lines.push(
+        `Consensus total: ${consensusLine.totalLine.toFixed(2).replace(/\\.00$/, '')} (O ${consensusLine.overPrice} / U ${
+            consensusLine.underPrice
+        })`,
+    );
 
     if (bookCards.length > 0) {
         const consensus = buildConsensusProbabilities(bookCards);
@@ -1083,14 +1248,15 @@ function buildRenderModel(
     match: MatchSeed,
     supabaseData: SupabaseLoad,
 ): RenderModel {
-    const matchedDb = findBestDbMatch(match, supabaseData.matchesRows);
-    const modelProb = buildModelProbabilities(match, matchedDb);
+    const fixtureRow = supabaseData.fixtureBySlug.get(match.slug);
+    const matchedDb = fixtureRow ? toMatchedDbMatch(fixtureRow, match) : null;
+    const consensusLine = deriveMatchLine(match, matchedDb, supabaseData);
+    const modelProb = buildModelProbabilities(match, matchedDb, supabaseData);
 
     const { cards: bookmakerCards, tracked: trackedBookmakers } = buildBookmakerCards(
         match,
         matchedDb,
-        supabaseData.soccerOddsByMatchId,
-        supabaseData.propOddsByMatchId,
+        supabaseData,
     );
 
     const hasBookmakerLines = bookmakerCards.length > 0;
@@ -1108,7 +1274,7 @@ function buildRenderModel(
         leagueProfile,
     );
 
-    const keyNumberLines = buildKeyNumberLines(match, modelProb, bookmakerCards);
+    const keyNumberLines = buildKeyNumberLines(match, modelProb, bookmakerCards, consensusLine);
     const leadParagraph = buildLeadParagraph(match, modelProb, edgeSignal, hasBookmakerLines);
     const translationsForSlug = supabaseData.translationsBySlug.get(match.slug);
     const translations: Record<string, MatchTranslation> = {};
@@ -1129,14 +1295,14 @@ function buildRenderModel(
         matchedDb,
         modelProb,
         modelOdds: {
-            away: modelToOdds(modelProb.away),
-            draw: modelToOdds(modelProb.draw),
-            home: modelToOdds(modelProb.home),
+            away: toAmericanOdds(1 / consensusLine.probabilities.away),
+            draw: toAmericanOdds(1 / consensusLine.probabilities.draw),
+            home: toAmericanOdds(1 / consensusLine.probabilities.home),
         },
         modelImplied: {
-            away: `${formatPercent(modelProb.away)} imp`,
-            draw: `${formatPercent(modelProb.draw)} imp`,
-            home: `${formatPercent(modelProb.home)} imp`,
+            away: `${(consensusLine.probabilities.away * 100).toFixed(1)}% imp`,
+            draw: `${(consensusLine.probabilities.draw * 100).toFixed(1)}% imp`,
+            home: `${(consensusLine.probabilities.home * 100).toFixed(1)}% imp`,
         },
         bookmakerCards,
         trackedBookmakers,
@@ -1148,6 +1314,12 @@ function buildRenderModel(
         keyNumberLines,
         pageTitle: buildPageTitle(match),
         pageDescription: buildPageDescription(match),
+        consensusSpreadLine: `${match.awayTeam} ${formatSpread(consensusLine.awaySpread)} (${consensusLine.spreadPriceAway}) · ${
+            match.homeTeam
+        } ${formatSpread(consensusLine.homeSpread)} (${consensusLine.spreadPriceHome})`,
+        consensusTotalLine: `${consensusLine.totalLine.toFixed(2).replace(/\\.00$/, '')} (Over ${
+            consensusLine.overPrice
+        } / Under ${consensusLine.underPrice})`,
         translations,
         availableLanguages,
     };
@@ -1213,10 +1385,15 @@ a{text-decoration:none;color:inherit}
 .odds-card:hover{border-color:var(--border-hover)}
 .bookmaker{font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text)}
 .columns{margin-top:10px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.market-label{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--ghost);margin-top:8px}
 .col-head{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.06em;text-transform:uppercase;color:var(--text-3)}
 .odd{font-family:'IBM Plex Mono',monospace;font-size:28px;font-weight:700;letter-spacing:-0.02em;color:var(--text)}
 .imp{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text-3)}
 .sub-note{margin-top:12px;font-size:12px;color:var(--text-3);font-style:italic}
+.derivatives{margin-top:14px;border-top:1px solid var(--border);padding-top:10px;display:grid;gap:8px}
+.derivative-row{display:grid;grid-template-columns:120px 1fr 1fr;gap:10px;align-items:center}
+.derivative-key{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-3)}
+.derivative-val{font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--text-2)}
 
 .edge-banner{border:1px solid rgba(34,197,94,0.35);background:rgba(34,197,94,0.06);border-radius:14px;padding:14px 16px}
 .edge-banner h3{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--green)}
@@ -1255,6 +1432,7 @@ a{text-decoration:none;color:inherit}
   .edge-header{padding:32px 18px}
   .section{padding:18px}
   .columns{grid-template-columns:1fr}
+  .derivative-row{grid-template-columns:1fr}
   .odd{font-size:24px}
   .related-card{flex-direction:column;align-items:flex-start}
 }
@@ -1523,6 +1701,7 @@ function renderBookmakerCard(match: MatchSeed, card: BookmakerCard): string {
     return `
 <div class="odds-card">
   <div class="bookmaker">${escapeHtml(card.bookmaker.toUpperCase())}</div>
+  <div class="market-label">Moneyline</div>
   <div class="columns">
     <div>
       <div class="col-head">${escapeHtml(match.awayTeam)}</div>
@@ -1540,18 +1719,31 @@ function renderBookmakerCard(match: MatchSeed, card: BookmakerCard): string {
       <div class="imp">${escapeHtml(card.implied.home)}</div>
     </div>
   </div>
+  <div class="derivatives">
+    <div class="derivative-row">
+      <div class="derivative-key">Spread</div>
+      <div class="derivative-val">${escapeHtml(match.awayTeam)} ${escapeHtml(card.spread.awayLine)} (${escapeHtml(card.spread.awayPrice)})</div>
+      <div class="derivative-val">${escapeHtml(match.homeTeam)} ${escapeHtml(card.spread.homeLine)} (${escapeHtml(card.spread.homePrice)})</div>
+    </div>
+    <div class="derivative-row">
+      <div class="derivative-key">Total</div>
+      <div class="derivative-val">Over ${escapeHtml(card.total.line)} (${escapeHtml(card.total.overPrice)})</div>
+      <div class="derivative-val">Under ${escapeHtml(card.total.line)} (${escapeHtml(card.total.underPrice)})</div>
+    </div>
+  </div>
 </div>`;
 }
 
 function renderModelCard(model: RenderModel): string {
     const match = model.match;
     const preMarketLabel = model.hasBookmakerLines
-        ? 'MODEL IMPLIED · BASELINE'
-        : 'MODEL IMPLIED · PRE-MARKET';
+        ? 'CONSENSUS DERIVED · BASELINE'
+        : 'CONSENSUS DERIVED · PRE-MARKET';
 
     return `
 <div class="odds-card">
   <div class="bookmaker">${preMarketLabel}</div>
+  <div class="market-label">Moneyline</div>
   <div class="columns">
     <div>
       <div class="col-head">${escapeHtml(match.awayTeam)}</div>
@@ -1567,6 +1759,18 @@ function renderModelCard(model: RenderModel): string {
       <div class="col-head">${escapeHtml(match.homeTeam)}</div>
       <div class="odd">${escapeHtml(model.modelOdds.home)}</div>
       <div class="imp">${escapeHtml(model.modelImplied.home)}</div>
+    </div>
+  </div>
+  <div class="derivatives">
+    <div class="derivative-row">
+      <div class="derivative-key">Spread</div>
+      <div class="derivative-val">${escapeHtml(model.consensusSpreadLine.split(' · ')[0] || '')}</div>
+      <div class="derivative-val">${escapeHtml(model.consensusSpreadLine.split(' · ')[1] || '')}</div>
+    </div>
+    <div class="derivative-row">
+      <div class="derivative-key">Total</div>
+      <div class="derivative-val">${escapeHtml(model.consensusTotalLine)}</div>
+      <div class="derivative-val">Market-derived from wc26_odds</div>
     </div>
   </div>
   ${!model.hasBookmakerLines ? '<p class="sub-note">Markets open closer to kickoff.</p>' : ''}
@@ -1803,20 +2007,50 @@ ${urls
 </urlset>`;
 }
 
+function pruneEdgeDirectories(keepSlugs: string[]): void {
+    const edgesRoot = resolve(PUBLIC_DIR, 'edges');
+    if (!existsSync(edgesRoot)) return;
+
+    const keep = new Set(keepSlugs);
+    const isWorldCupMatchSlug = (slug: string): boolean =>
+        slug.includes('-vs-') ||
+        /^(r32-match-|r16-match-|qf-|sf-|third-place-|final-)/.test(slug);
+
+    for (const entry of readdirSync(edgesRoot, { withFileTypes: true })) {
+        if (!entry.isDirectory()) continue;
+        if (!isWorldCupMatchSlug(entry.name)) continue;
+        if (keep.has(entry.name)) continue;
+        rmSync(resolve(edgesRoot, entry.name), { recursive: true, force: true });
+    }
+}
+
+function verifyRenderedHtml(html: string, slug: string): void {
+    const requiredTokens = ['Moneyline', 'Spread', 'Total', 'Match Intelligence', 'application/ld+json'];
+    for (const token of requiredTokens) {
+        if (!html.includes(token)) {
+            throw new Error(`Validation failed for ${slug}: missing "${token}" token.`);
+        }
+    }
+
+    if (/\bN\/A\b/.test(html) || />\s*—\s*</.test(html)) {
+        throw new Error(`Validation failed for ${slug}: unresolved placeholder values detected.`);
+    }
+}
+
 // ═══════════════════════════════════════════════════════════════
 // MAIN
 // ═══════════════════════════════════════════════════════════════
 
 async function main() {
-    console.log(`Pre-rendering ${ALL_MATCHES.length} match pages...`);
-
-    const supabaseData = await loadSupabaseData(ALL_MATCHES);
+    const supabaseData = await loadSupabaseData();
+    const matches = supabaseData.matches;
+    console.log(`Pre-rendering ${matches.length} match pages...`);
 
     let generated = 0;
     let cardsWithBookLines = 0;
     let cardsModelOnly = 0;
 
-    for (const match of ALL_MATCHES) {
+    for (const match of matches) {
         const model = buildRenderModel(match, supabaseData);
 
         if (model.hasBookmakerLines) {
@@ -1831,11 +2065,14 @@ async function main() {
         }
 
         const html = renderMatchPage(model);
+        verifyRenderedHtml(html, match.slug);
         writeFileSync(resolve(dir, 'index.html'), html, 'utf-8');
         generated += 1;
     }
 
-    const sitemap = generateSitemap(ALL_MATCHES);
+    pruneEdgeDirectories(matches.map((match) => match.slug));
+
+    const sitemap = generateSitemap(matches);
     writeFileSync(resolve(PUBLIC_DIR, 'sitemap.xml'), sitemap, 'utf-8');
 
     console.log(`✓ ${generated} match pages`);
