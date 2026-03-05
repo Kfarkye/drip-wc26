@@ -12,6 +12,7 @@ import { existsSync, mkdirSync, writeFileSync } from 'fs';
 import { resolve } from 'path';
 import { createClient } from '@supabase/supabase-js';
 import { ALL_MATCHES, type MatchSeed } from '../src/data/all-matches';
+import { EDGE_LANGUAGES, LANGUAGE_LABELS } from '../src/data/languages';
 import { allGroups } from '../src/data/groups';
 
 const SITE_URL = 'https://thedrip.to';
@@ -69,6 +70,15 @@ interface EdgeSignal {
     summary: string;
 }
 
+interface MatchTranslation {
+    languageCode: string;
+    title: string;
+    metaDescription: string;
+    analysisHeadline: string;
+    analysisBody: string;
+    keyFactors: string[];
+}
+
 interface RenderModel {
     match: MatchSeed;
     matchedDb: MatchedDbMatch | null;
@@ -85,6 +95,8 @@ interface RenderModel {
     keyNumberLines: string[];
     pageTitle: string;
     pageDescription: string;
+    translations: Record<string, MatchTranslation>;
+    availableLanguages: string[];
 }
 
 interface SupabaseLoad {
@@ -92,6 +104,7 @@ interface SupabaseLoad {
     soccerOddsByMatchId: Map<string, DbRow[]>;
     propOddsByMatchId: Map<string, DbRow[]>;
     leagueProfiles: Map<string, DbRow>;
+    translationsBySlug: Map<string, Map<string, MatchTranslation>>;
 }
 
 const VENUE_STATE_BY_MATCH_NUMBER = new Map<number, string>();
@@ -114,6 +127,10 @@ function escapeHtml(str: string): string {
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#39;');
+}
+
+function escapeJsonForScript(value: unknown): string {
+    return JSON.stringify(value).replace(/</g, '\\u003c');
 }
 
 function normalizeText(value: string): string {
@@ -454,6 +471,86 @@ async function fetchLeagueProfiles(
     return map;
 }
 
+function parseKeyFactors(raw: unknown): string[] {
+    if (Array.isArray(raw)) {
+        return raw
+            .filter((item): item is string => typeof item === 'string' && item.trim().length > 0)
+            .map((item) => item.trim())
+            .slice(0, 8);
+    }
+
+    if (typeof raw === 'string') {
+        try {
+            const parsed = JSON.parse(raw);
+            if (Array.isArray(parsed)) {
+                return parsed
+                    .filter((item): item is string => typeof item === 'string' && item.trim().length > 0)
+                    .map((item) => item.trim())
+                    .slice(0, 8);
+            }
+        } catch {
+            return [];
+        }
+    }
+
+    return [];
+}
+
+async function fetchTranslationsBySlugs(
+    supabase: ReturnType<typeof createClient>,
+    slugs: string[],
+): Promise<Map<string, Map<string, MatchTranslation>>> {
+    const map = new Map<string, Map<string, MatchTranslation>>();
+    if (slugs.length === 0) return map;
+
+    const supportedCodes = new Set(EDGE_LANGUAGES.map((language) => language.code));
+
+    const { data, error } = await supabase
+        .from('match_translations')
+        .select('match_slug, language_code, title, meta_description, analysis_headline, analysis_body, key_factors')
+        .in('match_slug', slugs);
+
+    if (error) {
+        const normalized = parseError(error);
+        if (!isMissingTableError(normalized)) {
+            console.warn('[prerender] match_translations query failed:', normalized?.message || error);
+        }
+        return map;
+    }
+
+    for (const row of ((data as DbRow[] | null) ?? [])) {
+        const slug = readFirstString(row, ['match_slug']);
+        const languageCodeRaw = readFirstString(row, ['language_code']);
+        const title = readFirstString(row, ['title']);
+        const metaDescription = readFirstString(row, ['meta_description']);
+        const analysisHeadline = readFirstString(row, ['analysis_headline']);
+        const analysisBody = readFirstString(row, ['analysis_body']);
+
+        if (!slug || !languageCodeRaw || !title || !metaDescription || !analysisHeadline || !analysisBody) {
+            continue;
+        }
+
+        const languageCode = languageCodeRaw.toLowerCase();
+        if (!supportedCodes.has(languageCode)) continue;
+
+        const translation: MatchTranslation = {
+            languageCode,
+            title,
+            metaDescription,
+            analysisHeadline,
+            analysisBody,
+            keyFactors: parseKeyFactors(row.key_factors),
+        };
+
+        if (!map.has(slug)) {
+            map.set(slug, new Map<string, MatchTranslation>());
+        }
+        map.get(slug)?.set(languageCode, translation);
+    }
+
+    return map;
+}
+
 function matchRowToSeed(row: DbRow, seed: MatchSeed): { swapped: boolean; diffMs: number } | null {
     const rowHome = readFirstString(row, ['home_team', 'home_team_name', 'home_name']);
     const rowAway = readFirstString(row, ['away_team', 'away_team_name', 'away_name']);
@@ -524,6 +621,7 @@ async function loadSupabaseData(matches: MatchSeed[]): Promise<SupabaseLoad> {
         soccerOddsByMatchId: new Map<string, DbRow[]>(),
         propOddsByMatchId: new Map<string, DbRow[]>(),
         leagueProfiles: new Map<string, DbRow>(),
+        translationsBySlug: new Map<string, Map<string, MatchTranslation>>(),
     };
 
     if (!SUPABASE_KEY || SUPABASE_KEY.length < 20) {
@@ -556,16 +654,22 @@ async function loadSupabaseData(matches: MatchSeed[]): Promise<SupabaseLoad> {
         );
 
         const leagueProfiles = await fetchLeagueProfiles(supabase, leagues);
+        const translationsBySlug = await fetchTranslationsBySlugs(
+            supabase,
+            matches.map((seed) => seed.slug),
+        );
 
         console.log(`[prerender] soccer_player_odds matched ids: ${soccerOddsByMatchId.size}`);
         console.log(`[prerender] player_prop_bets matched ids: ${propOddsByMatchId.size}`);
         console.log(`[prerender] structural profiles loaded: ${leagueProfiles.size}`);
+        console.log(`[prerender] translated edge slugs loaded: ${translationsBySlug.size}`);
 
         return {
             matchesRows,
             soccerOddsByMatchId,
             propOddsByMatchId,
             leagueProfiles,
+            translationsBySlug,
         };
     } catch (error) {
         console.warn('[prerender] Supabase load failed. Rendering model-only fallbacks.', error);
@@ -1006,6 +1110,19 @@ function buildRenderModel(
 
     const keyNumberLines = buildKeyNumberLines(match, modelProb, bookmakerCards);
     const leadParagraph = buildLeadParagraph(match, modelProb, edgeSignal, hasBookmakerLines);
+    const translationsForSlug = supabaseData.translationsBySlug.get(match.slug);
+    const translations: Record<string, MatchTranslation> = {};
+
+    for (const language of EDGE_LANGUAGES) {
+        const translation = translationsForSlug?.get(language.code);
+        if (translation) {
+            translations[language.code] = translation;
+        }
+    }
+
+    const availableLanguages = EDGE_LANGUAGES
+        .map((language) => language.code)
+        .filter((languageCode) => !!translations[languageCode]);
 
     return {
         match,
@@ -1031,6 +1148,8 @@ function buildRenderModel(
         keyNumberLines,
         pageTitle: buildPageTitle(match),
         pageDescription: buildPageDescription(match),
+        translations,
+        availableLanguages,
     };
 }
 
@@ -1070,6 +1189,11 @@ a{text-decoration:none;color:inherit}
 .live-dot{width:6px;height:6px;border-radius:999px;background:var(--green);box-shadow:0 0 12px rgba(34,197,94,0.8)}
 
 .edge-main{padding:32px 0 80px;flex:1}
+.utility-row{display:flex;justify-content:flex-end;margin-bottom:12px}
+.language-switcher{display:flex;align-items:center;gap:8px;border:1px solid var(--border);background:var(--surface);border-radius:10px;padding:7px 9px}
+.language-label{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-3)}
+.language-select{appearance:none;background:#09090b;color:var(--text);border:1px solid var(--border);border-radius:8px;padding:6px 26px 6px 10px;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;max-width:180px}
+.language-select:focus{outline:1px solid var(--green);outline-offset:1px}
 
 .edge-header{width:100%;background:var(--surface);border:1px solid var(--border);border-bottom:1px solid var(--border);padding:48px 32px;border-radius:18px;margin-bottom:24px}
 .eyebrow{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:var(--text-3);margin-bottom:20px}
@@ -1100,9 +1224,17 @@ a{text-decoration:none;color:inherit}
 .edge-tag{margin-top:8px;display:inline-flex;border:1px solid rgba(34,197,94,0.3);border-radius:999px;padding:4px 10px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--green)}
 
 .intel-lead{font-size:15px;color:var(--text-2);line-height:1.7;margin-bottom:20px}
+.intel-headline{font-size:17px;font-weight:700;color:var(--text);line-height:1.5;margin-bottom:14px}
+.intel-body{display:grid;gap:10px;margin-bottom:18px}
+.intel-body p{font-size:15px;color:var(--text-2);line-height:1.75}
 .subsection-label{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:var(--text-3);margin-bottom:10px}
 .intel-list{list-style:none;display:grid;gap:8px;margin-bottom:18px}
 .intel-list li{font-size:14px;color:var(--text-2);line-height:1.6;border-left:2px solid var(--border);padding-left:10px}
+.translated-analysis{display:none}
+.translated-analysis[aria-hidden="false"]{display:block}
+
+.rtl .intel-list li{border-left:none;border-right:2px solid var(--border);padding-left:0;padding-right:10px}
+.rtl .intel-body p,.rtl .intel-headline{text-align:right}
 
 .related-list{display:grid;gap:10px}
 .related-card{display:flex;align-items:center;justify-content:space-between;gap:12px;border:1px solid var(--border);background:#09090b;border-radius:12px;padding:14px 16px;transition:border-color .2s ease}
@@ -1117,6 +1249,9 @@ a{text-decoration:none;color:inherit}
 @media (max-width: 780px){
   .nav-links{gap:10px}
   .nav-link{display:none}
+  .utility-row{justify-content:stretch}
+  .language-switcher{width:100%;justify-content:space-between}
+  .language-select{max-width:none;width:100%}
   .edge-header{padding:32px 18px}
   .section{padding:18px}
   .columns{grid-template-columns:1fr}
@@ -1142,6 +1277,220 @@ function renderNav(groupLetter?: string): string {
     </div>
   </div>
 </nav>`;
+}
+
+function renderLanguageSwitcher(model: RenderModel): string {
+    const availableCodes = ['en', ...model.availableLanguages];
+    const options = availableCodes
+        .map((code) => {
+            const label = LANGUAGE_LABELS[code] ?? code.toUpperCase();
+            return `<option value="${escapeHtml(code)}">${escapeHtml(label)}</option>`;
+        })
+        .join('');
+
+    return `
+<div class="utility-row">
+  <div class="language-switcher">
+    <label class="language-label" for="language-switcher">Language</label>
+    <select id="language-switcher" class="language-select" aria-label="Language selector">
+      ${options}
+    </select>
+  </div>
+</div>`;
+}
+
+function renderHreflangLinks(matchSlug: string): string {
+    const base = `${SITE_URL}/edges/${matchSlug}/`;
+    const tags = [
+        `<link rel="alternate" hreflang="en" href="${base}?lang=en" />`,
+        ...EDGE_LANGUAGES.map((language) =>
+            `<link rel="alternate" hreflang="${language.hreflang}" href="${base}?lang=${language.code}" />`),
+        `<link rel="alternate" hreflang="x-default" href="${base}" />`,
+    ];
+    return tags.join('\n  ');
+}
+
+function renderTranslationPayload(model: RenderModel): string {
+    const english: MatchTranslation = {
+        languageCode: 'en',
+        title: model.pageTitle,
+        metaDescription: model.pageDescription,
+        analysisHeadline: model.leadParagraph,
+        analysisBody: model.leadParagraph,
+        keyFactors: model.structuralLines.slice(0, 6),
+    };
+
+    const payload = {
+        availableLanguages: ['en', ...model.availableLanguages],
+        rtlLanguages: ['ar'],
+        translations: {
+            en: english,
+            ...model.translations,
+        },
+    };
+
+    return `<script id="drip-i18n-payload" type="application/json">${escapeJsonForScript(payload)}</script>`;
+}
+
+function renderTranslationRuntimeScript(): string {
+    return `<script>
+(function () {
+  var payloadTag = document.getElementById('drip-i18n-payload');
+  if (!payloadTag) return;
+
+  var payload;
+  try {
+    payload = JSON.parse(payloadTag.textContent || '{}');
+  } catch (_error) {
+    return;
+  }
+
+  var available = Array.isArray(payload.availableLanguages) ? payload.availableLanguages : ['en'];
+  var availableSet = new Set(available);
+  var params = new URLSearchParams(window.location.search);
+  var urlLang = (params.get('lang') || '').toLowerCase();
+
+  var storedLang = '';
+  try {
+    storedLang = (window.localStorage.getItem('drip-language') || '').toLowerCase();
+  } catch (_error) {
+    storedLang = '';
+  }
+
+  var browserLang = ((window.navigator.language || 'en').slice(0, 2) || 'en').toLowerCase();
+  var candidates = [urlLang, storedLang, browserLang, 'en'];
+  var selected = 'en';
+
+  for (var i = 0; i < candidates.length; i += 1) {
+    var candidate = candidates[i];
+    if (candidate && availableSet.has(candidate)) {
+      selected = candidate;
+      break;
+    }
+  }
+
+  if (!availableSet.has(selected)) {
+    selected = 'en';
+  }
+
+  var translations = payload.translations || {};
+  var translation = translations[selected] || translations.en;
+  if (!translation) return;
+
+  try {
+    window.localStorage.setItem('drip-language', selected);
+  } catch (_error) {
+    // ignore storage errors
+  }
+
+  var isRtl = Array.isArray(payload.rtlLanguages) && payload.rtlLanguages.indexOf(selected) !== -1;
+  document.documentElement.lang = selected;
+  document.documentElement.dir = isRtl ? 'rtl' : 'ltr';
+
+  var pageRoot = document.getElementById('edge-page-root');
+  if (pageRoot) {
+    pageRoot.setAttribute('dir', isRtl ? 'rtl' : 'ltr');
+    pageRoot.classList.toggle('rtl', isRtl);
+  }
+
+  if (typeof translation.title === 'string' && translation.title.trim()) {
+    document.title = translation.title.trim();
+  }
+
+  function setMeta(selector, value) {
+    if (typeof value !== 'string' || !value.trim()) return;
+    var node = document.querySelector(selector);
+    if (node) node.setAttribute('content', value.trim());
+  }
+
+  setMeta('meta[name=\"description\"]', translation.metaDescription);
+  setMeta('meta[property=\"og:title\"]', translation.title);
+  setMeta('meta[property=\"og:description\"]', translation.metaDescription);
+  setMeta('meta[name=\"twitter:title\"]', translation.title);
+  setMeta('meta[name=\"twitter:description\"]', translation.metaDescription);
+
+  var englishBlock = document.getElementById('english-analysis');
+  var translatedBlock = document.getElementById('translated-analysis');
+  var useTranslation = selected !== 'en' && !!translations[selected];
+
+  if (englishBlock) {
+    englishBlock.style.display = useTranslation ? 'none' : 'block';
+  }
+
+  if (translatedBlock) {
+    translatedBlock.setAttribute('aria-hidden', useTranslation ? 'false' : 'true');
+    translatedBlock.style.display = useTranslation ? 'block' : 'none';
+  }
+
+  if (useTranslation) {
+    var headlineNode = document.getElementById('translated-headline');
+    if (headlineNode) {
+      headlineNode.textContent = translation.analysisHeadline || '';
+    }
+
+    var bodyNode = document.getElementById('translated-body');
+    if (bodyNode) {
+      var bodyText = typeof translation.analysisBody === 'string' ? translation.analysisBody : '';
+      var paragraphs = bodyText
+        .split(/\\n{2,}/)
+        .map(function (part) { return part.trim(); })
+        .filter(Boolean);
+      if (paragraphs.length === 0 && bodyText.trim()) paragraphs = [bodyText.trim()];
+      bodyNode.innerHTML = paragraphs
+        .map(function (paragraph) {
+          return '<p>' +
+            paragraph
+              .replace(/&/g, '&amp;')
+              .replace(/</g, '&lt;')
+              .replace(/>/g, '&gt;')
+              .replace(/\"/g, '&quot;')
+              .replace(/'/g, '&#39;') +
+            '</p>';
+        })
+        .join('');
+    }
+
+    var factorsNode = document.getElementById('translated-factors');
+    if (factorsNode) {
+      var factors = Array.isArray(translation.keyFactors) ? translation.keyFactors : [];
+      factorsNode.innerHTML = factors
+        .filter(function (factor) { return typeof factor === 'string' && factor.trim().length > 0; })
+        .map(function (factor) {
+          return '<li>' +
+            factor
+              .trim()
+              .replace(/&/g, '&amp;')
+              .replace(/</g, '&lt;')
+              .replace(/>/g, '&gt;')
+              .replace(/\"/g, '&quot;')
+              .replace(/'/g, '&#39;') +
+            '</li>';
+        })
+        .join('');
+    }
+  }
+
+  var selector = document.getElementById('language-switcher');
+  if (selector && selector instanceof HTMLSelectElement) {
+    selector.value = selected;
+    selector.addEventListener('change', function () {
+      var next = (selector.value || 'en').toLowerCase();
+      try {
+        window.localStorage.setItem('drip-language', next);
+      } catch (_error) {
+        // ignore storage errors
+      }
+      var nextUrl = new URL(window.location.href);
+      if (next === 'en') {
+        nextUrl.searchParams.delete('lang');
+      } else {
+        nextUrl.searchParams.set('lang', next);
+      }
+      window.location.href = nextUrl.toString();
+    });
+  }
+})();
+</script>`;
 }
 
 function renderHeader(model: RenderModel): string {
@@ -1263,15 +1612,24 @@ function renderAnalysisSection(model: RenderModel): string {
 <section class="section">
   <div class="section-label">Match Intelligence</div>
   <div class="rule"></div>
-  <p class="intel-lead">${escapeHtml(model.leadParagraph)}</p>
+  <div id="english-analysis">
+    <p class="intel-lead">${escapeHtml(model.leadParagraph)}</p>
 
-  ${model.structuralLines.length > 0 ? `
-  <div class="subsection-label">Structural Context</div>
-  <ul class="intel-list">${structuralHtml}</ul>
-  ` : ''}
+    ${model.structuralLines.length > 0 ? `
+    <div class="subsection-label">Structural Context</div>
+    <ul class="intel-list">${structuralHtml}</ul>
+    ` : ''}
 
-  <div class="subsection-label">Key Numbers</div>
-  <ul class="intel-list">${keyNumbersHtml}</ul>
+    <div class="subsection-label">Key Numbers</div>
+    <ul class="intel-list">${keyNumbersHtml}</ul>
+  </div>
+
+  <div id="translated-analysis" class="translated-analysis" aria-hidden="true">
+    <p class="intel-headline" id="translated-headline"></p>
+    <div class="intel-body" id="translated-body"></div>
+    <div class="subsection-label">Key Factors</div>
+    <ul class="intel-list" id="translated-factors"></ul>
+  </div>
 </section>`;
 }
 
@@ -1349,6 +1707,9 @@ function renderJsonLd(model: RenderModel): string {
 
 function renderMatchPage(model: RenderModel): string {
     const canonical = `${SITE_URL}/edges/${model.match.slug}/`;
+    const hreflangLinks = renderHreflangLinks(model.match.slug);
+    const translationPayload = renderTranslationPayload(model);
+    const translationRuntime = renderTranslationRuntimeScript();
 
     return `<!DOCTYPE html>
 <html lang="en">
@@ -1361,6 +1722,7 @@ function renderMatchPage(model: RenderModel): string {
   <title>${escapeHtml(model.pageTitle)}</title>
   <meta name="description" content="${escapeHtml(model.pageDescription)}" />
   <link rel="canonical" href="${canonical}" />
+  ${hreflangLinks}
 
   <meta property="og:title" content="${escapeHtml(model.pageTitle)}" />
   <meta property="og:description" content="${escapeHtml(model.pageDescription)}" />
@@ -1377,15 +1739,17 @@ function renderMatchPage(model: RenderModel): string {
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;700;800;900&display=swap" rel="stylesheet" />
+  ${translationPayload}
 
   <style>${INLINE_CSS}</style>
 </head>
 <body>
-  <div class="page">
+  <div class="page" id="edge-page-root" dir="ltr">
     ${renderNav(model.match.group)}
 
     <main class="edge-main">
       <div class="wrap">
+        ${renderLanguageSwitcher(model)}
         ${renderHeader(model)}
         ${renderOddsSection(model)}
         ${renderAnalysisSection(model)}
@@ -1395,6 +1759,7 @@ function renderMatchPage(model: RenderModel): string {
 
     ${renderFooter()}
   </div>
+  ${translationRuntime}
 </body>
 </html>`;
 }

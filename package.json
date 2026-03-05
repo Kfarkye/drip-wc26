@@ -8,7 +8,8 @@
     "build": "npm run prerender && tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "prerender": "tsx scripts/prerender-matches.ts"
+    "prerender": "tsx scripts/prerender-matches.ts",
+    "generate:translations": "tsx scripts/generateTranslations.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.96.0",
