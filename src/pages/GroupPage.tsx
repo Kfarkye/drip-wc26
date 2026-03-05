@@ -316,6 +316,13 @@ const formatScheduleTime = (kickoff: string): string => {
     return parsed.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
 };
 
+const formatScheduleVenue = (venue: string, city?: string | null): string => {
+    const cleanVenue = venue.trim();
+    const cleanCity = city?.trim();
+    if (cleanCity) return `${cleanVenue} · ${cleanCity}`;
+    return cleanVenue;
+};
+
 export const GroupPage: React.FC = () => {
     const { letter } = useParams<{ letter: string }>();
     const upperLetter = letter?.toUpperCase() ?? '';
@@ -395,6 +402,17 @@ export const GroupPage: React.FC = () => {
         teamMarketView.map((entry): [string, number] => [entry.team.code, entry.impliedPct ?? 0])
     );
     const maxImpliedInGroup = Math.max(1, ...teamMarketView.map((entry) => entry.impliedPct ?? 0));
+
+    const favoriteLabel = hasAdvancementOdds
+        ? (favoriteTeam?.team.name ?? group.teams[0].name)
+        : 'Advancement board pending';
+    const favoriteImpliedLabel = hasAdvancementOdds
+        ? `${favoriteTeam?.odds?.implied ?? '—'} implied`
+        : 'Markets open closer to kickoff';
+    const gapLabel = hasAdvancementOdds && favoriteGap != null
+        ? `${favoriteGap.toFixed(1)} pts`
+        : 'Awaiting market spread';
+    const parityDisplay = hasAdvancementOdds ? parityLabel : 'pre-market';
 
     const fixtureFocus = group.matches.reduce<{
         score: number;
@@ -518,13 +536,13 @@ export const GroupPage: React.FC = () => {
                                             className="text-base leading-tight"
                                             style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, color: 'var(--gray-900)' }}
                                         >
-                                            {favoriteTeam?.team.name ?? group.teams[0].name}
+                                            {favoriteLabel}
                                         </div>
                                         <div
                                             className="text-[12px]"
                                             style={{ fontFamily: 'var(--font-data)', fontWeight: 700, color: 'var(--brand-red)' }}
                                         >
-                                            {favoriteTeam?.odds?.implied ?? '—'} implied
+                                            {favoriteImpliedLabel}
                                         </div>
                                     </div>
 
@@ -539,13 +557,13 @@ export const GroupPage: React.FC = () => {
                                             className="text-base"
                                             style={{ fontFamily: 'var(--font-data)', fontWeight: 700, color: 'var(--gray-900)' }}
                                         >
-                                            {favoriteGap != null ? `${favoriteGap.toFixed(1)} pts` : 'n/a'}
+                                            {gapLabel}
                                         </div>
                                         <div
                                             className="text-[12px] uppercase"
                                             style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, color: 'var(--gray-500)' }}
                                         >
-                                            {parityLabel}
+                                            {parityDisplay}
                                         </div>
                                     </div>
 
@@ -557,67 +575,41 @@ export const GroupPage: React.FC = () => {
                                             Group Match Schedule
                                         </div>
                                         {scheduleRows.length > 0 ? (
-                                            <div className="overflow-x-auto">
-                                                <table className="w-full" style={{ minWidth: '430px' }}>
-                                                    <thead>
-                                                        <tr>
-                                                            <th
-                                                                className="text-left pb-1 pr-2 text-[10px] uppercase"
-                                                                style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, color: 'var(--gray-500)' }}
+                                            <div className="space-y-1.5">
+                                                {scheduleRows.map((match) => (
+                                                    <div
+                                                        key={match.id}
+                                                        className="border rounded-[8px] p-2.5"
+                                                        style={{ borderColor: 'var(--gray-200)', background: '#fff' }}
+                                                    >
+                                                        <div className="flex items-center justify-between gap-2 mb-1">
+                                                            <span
+                                                                className="text-[11px] uppercase"
+                                                                style={{ fontFamily: 'var(--font-data)', fontWeight: 700, color: 'var(--gray-800)' }}
                                                             >
-                                                                Date
-                                                            </th>
-                                                            <th
-                                                                className="text-left pb-1 pr-2 text-[10px] uppercase"
-                                                                style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, color: 'var(--gray-500)' }}
+                                                                {formatScheduleDate(match.kickoff)}
+                                                            </span>
+                                                            <span
+                                                                className="text-[11px] uppercase whitespace-nowrap"
+                                                                style={{ fontFamily: 'var(--font-data)', color: 'var(--gray-500)' }}
                                                             >
-                                                                Match
-                                                            </th>
-                                                            <th
-                                                                className="text-left pb-1 pr-2 text-[10px] uppercase"
-                                                                style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, color: 'var(--gray-500)' }}
-                                                            >
-                                                                Venue
-                                                            </th>
-                                                            <th
-                                                                className="text-left pb-1 text-[10px] uppercase"
-                                                                style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, color: 'var(--gray-500)' }}
-                                                            >
-                                                                Kickoff
-                                                            </th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        {scheduleRows.map((match) => (
-                                                            <tr key={match.id}>
-                                                                <td
-                                                                    className="py-1 pr-2 text-[12px] align-top whitespace-nowrap"
-                                                                    style={{ fontFamily: 'var(--font-data)', fontWeight: 700, color: 'var(--gray-800)' }}
-                                                                >
-                                                                    {formatScheduleDate(match.kickoff)}
-                                                                </td>
-                                                                <td
-                                                                    className="py-1 pr-2 text-[12px] align-top"
-                                                                    style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, color: 'var(--gray-900)' }}
-                                                                >
-                                                                    {match.homeTeam} vs {match.awayTeam}
-                                                                </td>
-                                                                <td
-                                                                    className="py-1 pr-2 text-[12px] align-top whitespace-nowrap"
-                                                                    style={{ fontFamily: 'var(--font-ui)', color: 'var(--gray-800)' }}
-                                                                >
-                                                                    {match.city ? `${match.venue}, ${match.city}` : match.venue}
-                                                                </td>
-                                                                <td
-                                                                    className="py-1 text-[12px] align-top whitespace-nowrap"
-                                                                    style={{ fontFamily: 'var(--font-data)', color: 'var(--gray-800)' }}
-                                                                >
-                                                                    {formatScheduleTime(match.kickoff)}
-                                                                </td>
-                                                            </tr>
-                                                        ))}
-                                                    </tbody>
-                                                </table>
+                                                                {formatScheduleTime(match.kickoff)}
+                                                            </span>
+                                                        </div>
+                                                        <div
+                                                            className="text-[12px] leading-snug mb-1"
+                                                            style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, color: 'var(--gray-900)' }}
+                                                        >
+                                                            {match.homeTeam} vs {match.awayTeam}
+                                                        </div>
+                                                        <div
+                                                            className="text-[11px]"
+                                                            style={{ fontFamily: 'var(--font-ui)', color: 'var(--gray-700)' }}
+                                                        >
+                                                            {formatScheduleVenue(match.venue, match.city)}
+                                                        </div>
+                                                    </div>
+                                                ))}
                                             </div>
                                         ) : (
                                             <div
@@ -636,41 +628,50 @@ export const GroupPage: React.FC = () => {
                                         >
                                             Group Shape
                                         </div>
-                                        <div className="space-y-2.5">
-                                            {teamMarketView.slice(0, 4).map((entry) => {
-                                                const width = Math.max(
-                                                    12,
-                                                    Math.round(((entry.impliedPct ?? 0) / maxImpliedInGroup) * 100)
-                                                );
-                                                return (
-                                                    <div key={entry.team.code}>
-                                                        <div className="flex items-center justify-between mb-1">
-                                                            <span
-                                                                className="text-[11px]"
-                                                                style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, color: 'var(--gray-800)' }}
-                                                            >
-                                                                {entry.team.code}
-                                                            </span>
-                                                            <span
-                                                                className="text-[11px]"
-                                                                style={{ fontFamily: 'var(--font-data)', fontWeight: 700, color: 'var(--gray-500)' }}
-                                                            >
-                                                                {entry.odds?.implied ?? '—'}
-                                                            </span>
+                                        {hasAdvancementOdds ? (
+                                            <div className="space-y-2.5">
+                                                {teamMarketView.slice(0, 4).map((entry) => {
+                                                    const width = Math.max(
+                                                        12,
+                                                        Math.round(((entry.impliedPct ?? 0) / maxImpliedInGroup) * 100)
+                                                    );
+                                                    return (
+                                                        <div key={entry.team.code}>
+                                                            <div className="flex items-center justify-between mb-1">
+                                                                <span
+                                                                    className="text-[11px]"
+                                                                    style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, color: 'var(--gray-800)' }}
+                                                                >
+                                                                    {entry.team.code}
+                                                                </span>
+                                                                <span
+                                                                    className="text-[11px]"
+                                                                    style={{ fontFamily: 'var(--font-data)', fontWeight: 700, color: 'var(--gray-500)' }}
+                                                                >
+                                                                    {entry.odds?.implied ?? '—'}
+                                                                </span>
+                                                            </div>
+                                                            <div className="h-1.5 w-full" style={{ background: 'var(--gray-200)' }}>
+                                                                <div
+                                                                    className="h-full"
+                                                                    style={{
+                                                                        width: `${width}%`,
+                                                                        background: entry.team.code === favoriteTeam?.team.code ? 'var(--brand-red)' : 'var(--gray-800)',
+                                                                    }}
+                                                                />
+                                                            </div>
                                                         </div>
-                                                        <div className="h-1.5 w-full" style={{ background: 'var(--gray-200)' }}>
-                                                            <div
-                                                                className="h-full"
-                                                                style={{
-                                                                    width: `${width}%`,
-                                                                    background: entry.team.code === favoriteTeam?.team.code ? 'var(--brand-red)' : 'var(--gray-800)',
-                                                                }}
-                                                            />
-                                                        </div>
-                                                    </div>
-                                                );
-                                            })}
-                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        ) : (
+                                            <p
+                                                className="text-[12px] leading-relaxed m-0"
+                                                style={{ fontFamily: 'var(--font-ui)', color: 'var(--gray-600)' }}
+                                            >
+                                                No posted "to advance" prices yet. This chart populates when books open the group board.
+                                            </p>
+                                        )}
                                     </div>
                                 </aside>
 
@@ -970,7 +971,7 @@ export const GroupPage: React.FC = () => {
                                 className="text-[13px] uppercase"
                                 style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, color: 'var(--gray-500)' }}
                             >
-                                {group.matches.length} Matches
+                                {scheduleRows.length} Matches
                             </span>
                         </div>
 
