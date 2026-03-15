@@ -1,15 +1,15 @@
 import { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { Home } from './pages/Home';
+import { Home } from './routes/Home';
 
 const GroupPage = lazy(() =>
-  import('./pages/GroupPage').then((module) => ({ default: module.GroupPage }))
+  import('./routes/GroupPage').then((module) => ({ default: module.GroupPage }))
 );
 const TodayPage = lazy(() =>
-  import('./pages/TodayPage').then((module) => ({ default: module.TodayPage }))
+  import('./routes/TodayPage').then((module) => ({ default: module.TodayPage }))
 );
 const EdgeDetailPage = lazy(() =>
-  import('./pages/EdgeDetailPage').then((module) => ({ default: module.EdgeDetailPage }))
+  import('./routes/EdgeDetailPage').then((module) => ({ default: module.EdgeDetailPage }))
 );
 
 function RouteFallback() {

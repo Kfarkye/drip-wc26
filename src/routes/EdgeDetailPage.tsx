@@ -295,19 +295,44 @@ function standingProjection(group: GroupInfo, seed: number) {
 
 export const EdgeDetailPage: React.FC = () => {
     const { slug } = useParams<{ slug: string }>();
-    if (!slug) return null;
-
-    const matchResult = findMatchBySlug(slug);
     const [activeTab, setActiveTab] = useState<TabKey>('details');
     const [statsPeriod, setStatsPeriod] = useState<StatsPeriod>('all');
     const [eventFilter, setEventFilter] = useState<EventFilter>('all');
+    const resolvedSlug = slug ?? '';
+    const matchResult = resolvedSlug ? findMatchBySlug(resolvedSlug) : null;
 
-    const displayTitle = slug
+    const displayTitle = resolvedSlug
         .replace(/-/g, ' ')
         .replace(/\b\w/g, (c) => c.toUpperCase())
         .replace(/ Vs /, ' vs ')
         .replace(/\d{4} \d{2} \d{2}$/, '')
         .trim();
+
+    const seed = useMemo(() => {
+        if (!matchResult) return 0;
+        return (matchResult.match.matchNumber * 97)
+            + matchResult.match.homeTeam.code.charCodeAt(0)
+            + matchResult.match.awayTeam.code.charCodeAt(0);
+    }, [matchResult]);
+
+    const status = matchResult ? getMatchStatus(matchResult.match.kickoff) : 'scheduled';
+    const simulated = simulateScore(seed, status);
+    const statsAll = useMemo(() => buildBaseStats(seed), [seed]);
+    const statsVisible = useMemo(() => applyStatsPeriod(statsAll, statsPeriod, seed), [statsAll, statsPeriod, seed]);
+    const timeline = useMemo(
+        () => (matchResult ? buildTimelineEvents(matchResult.match, status, simulated, seed) : []),
+        [matchResult, seed, simulated, status],
+    );
+    const timelineVisible = useMemo(
+        () => (eventFilter === 'key' ? timeline.filter((event) => event.key) : timeline),
+        [eventFilter, timeline],
+    );
+    const standings = useMemo(
+        () => (matchResult ? standingProjection(matchResult.group, seed) : []),
+        [matchResult, seed],
+    );
+
+    if (!slug) return null;
 
     if (!matchResult) {
         return (
@@ -328,18 +353,6 @@ export const EdgeDetailPage: React.FC = () => {
             </div>
         );
     }
-
-    const seed = (matchResult.match.matchNumber * 97)
-        + matchResult.match.homeTeam.code.charCodeAt(0)
-        + matchResult.match.awayTeam.code.charCodeAt(0);
-
-    const status = getMatchStatus(matchResult.match.kickoff);
-    const simulated = simulateScore(seed, status);
-    const statsAll = useMemo(() => buildBaseStats(seed), [seed]);
-    const statsVisible = useMemo(() => applyStatsPeriod(statsAll, statsPeriod, seed), [statsAll, statsPeriod, seed]);
-    const timeline = useMemo(() => buildTimelineEvents(matchResult.match, status, simulated, seed), [matchResult.match, status, simulated, seed]);
-    const timelineVisible = useMemo(() => (eventFilter === 'key' ? timeline.filter((event) => event.key) : timeline), [eventFilter, timeline]);
-    const standings = useMemo(() => standingProjection(matchResult.group, seed), [matchResult.group, seed]);
 
     const xg = findStat(statsAll, 'xg');
     const shots = findStat(statsAll, 'shots');
