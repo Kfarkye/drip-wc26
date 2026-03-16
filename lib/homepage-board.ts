@@ -208,7 +208,7 @@ function lineRichness(row: OpeningLineRow): number {
     readNumber(row, ["draw_ml"]),
   ];
 
-  return values.reduce((count, value) => (value === null ? count : count + 1), 0);
+  return values.reduce<number>((count, value) => (value === null ? count : count + 1), 0);
 }
 
 function parseOdds(row: OpeningLineRow | null): HomepageOdds {
