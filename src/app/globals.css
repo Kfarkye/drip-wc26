@@ -708,7 +708,7 @@ img {
 }
 
 .matchup-board-shell,
-.featured-picks-shell {
+.home-explore-shell {
   margin-top: 24px;
 }
 
@@ -740,8 +740,25 @@ img {
   gap: 12px;
   overflow-x: auto;
   padding-bottom: 6px;
-  margin-bottom: 18px;
+  margin-bottom: 12px;
   scrollbar-width: none;
+}
+
+.home-subnav-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.home-subnav-link {
+  color: var(--muted);
+  font-size: 0.86rem;
+  font-weight: 600;
+}
+
+.home-subnav-link:hover {
+  color: var(--text);
 }
 
 .sport-pill {
@@ -879,6 +896,21 @@ img {
   line-height: 1.2;
 }
 
+.scoreboard-team-copy {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.scoreboard-team-copy span {
+  color: var(--muted);
+  font-size: 0.8rem;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .scoreboard-team-markets {
   display: inline-flex;
   align-items: center;
@@ -983,22 +1015,40 @@ img {
   border-color: var(--text);
 }
 
-.pick-card {
-  min-height: 200px;
+.home-explore-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
 }
 
-.pick-card p {
-  margin: 0;
+.home-explore-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 148px;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+  transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+}
+
+.home-explore-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--line-strong);
+  box-shadow: var(--shadow-md);
+}
+
+.home-explore-card strong {
   color: var(--text);
-  font-size: 1rem;
-  line-height: 1.45;
+  font-size: 1.02rem;
 }
 
-.pick-card-meta {
-  margin-top: auto;
+.home-explore-card span {
   color: var(--muted);
-  font-family: var(--mono);
-  font-size: 0.78rem;
+  font-size: 0.92rem;
+  line-height: 1.5;
 }
 
 .empty-board-state,
@@ -1053,6 +1103,10 @@ img {
     flex-wrap: wrap;
   }
 
+  .home-subnav-row {
+    gap: 10px 14px;
+  }
+
   .scoreboard-team-row,
   .scoreboard-total-row,
   .pick-card-meta {
@@ -1065,7 +1119,7 @@ img {
   }
 
   .scoreboard-grid,
-  .featured-picks-grid,
+  .home-explore-grid,
   .link-grid,
   .team-grid,
   .schedule-list,

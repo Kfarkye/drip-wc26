@@ -9,7 +9,7 @@ export const metadata: Metadata = {
         default: 'The Drip',
         template: '%s | The Drip',
     },
-    description: 'Today’s games, opening lines, and betting signals on one homepage.',
+    description: 'Today’s games, opening lines, and matchup cards on one homepage.',
     openGraph: {
         siteName: 'The Drip',
         type: 'website',

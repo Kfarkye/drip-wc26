@@ -5,21 +5,21 @@ import { getHomepageBoardData } from "../../lib/homepage-board";
 export const revalidate = 300;
 
 export const metadata: Metadata = {
-  title: "Today’s Games, Odds & Trend Signals",
-  description: "Today’s games, opening lines, and betting signals across NBA, NHL, MLB, soccer, and NCAAB.",
+  title: "Today’s Games & Odds",
+  description: "Today’s games, opening lines, and matchup cards across NBA, NHL, MLB, soccer, and NCAAB.",
   alternates: {
     canonical: "https://thedrip.to/",
   },
   openGraph: {
-    title: "Today’s Games, Odds & Trend Signals",
-    description: "Matchup cards, opening lines, and daily betting signals for today’s slate.",
+    title: "Today’s Games & Odds",
+    description: "Matchup cards, opening lines, and team logos for today’s slate.",
     type: "website",
     url: "https://thedrip.to/",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Today’s Games, Odds & Trend Signals",
-    description: "Matchup cards, opening lines, and daily betting signals for today’s slate.",
+    title: "Today’s Games & Odds",
+    description: "Matchup cards, opening lines, and team logos for today’s slate.",
   },
 };
 
@@ -31,7 +31,7 @@ export default async function HomePage() {
     "@type": "CollectionPage",
     name: "The Drip Homepage",
     url: "https://thedrip.to/",
-    description: "Today’s games, opening lines, and betting signals across the live slate.",
+    description: "Today’s games, opening lines, and matchup cards across the live slate.",
     hasPart: data.games.map((game) => ({
       "@type": "SportsEvent",
       name: `${game.awayTeam} at ${game.homeTeam}`,

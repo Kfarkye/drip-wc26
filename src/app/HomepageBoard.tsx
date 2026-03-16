@@ -25,17 +25,39 @@ const SPORT_PILLS: Array<{
   { icon: "🎓", id: "ncaab", label: "NCAAB" },
 ] as const;
 
+const SPORT_SUBLINKS: Record<HomeSportFilter, Array<{ href: string; label: string }>> = {
+  featured: [
+    { href: "#matchups", label: "All Sports Today" },
+    { href: "/today", label: "Daily Odds" },
+  ],
+  mlb: [
+    { href: "#matchups", label: "MLB Scores & Matchups" },
+    { href: "/today", label: "MLB Odds" },
+  ],
+  nba: [
+    { href: "#matchups", label: "NBA Scores & Matchups" },
+    { href: "/today", label: "NBA Odds" },
+  ],
+  ncaab: [
+    { href: "#matchups", label: "NCAAB Scores & Matchups" },
+    { href: "/today", label: "NCAAB Odds" },
+  ],
+  nhl: [
+    { href: "#matchups", label: "NHL Scores & Matchups" },
+    { href: "/today", label: "NHL Odds" },
+  ],
+  soccer: [
+    { href: "#matchups", label: "Soccer Scores & Matchups" },
+    { href: "/today", label: "Soccer Odds" },
+  ],
+};
+
 function cardGamesForFilter(games: HomepageGameCard[], activeSport: HomeSportFilter): HomepageGameCard[] {
   if (activeSport === "featured") {
-    const featured = games.filter((game) => game.trend);
-    return featured.length > 0 ? featured : games;
+    return games;
   }
 
   return games.filter((game) => game.sportFilter === activeSport);
-}
-
-function formatStrength(value: number): string {
-  return `${Math.round(value)}%`;
 }
 
 function renderLogo(src: string | null, alt: string) {
@@ -54,6 +76,7 @@ function teamRow(game: HomepageGameCard, side: "away" | "home") {
   const isAway = side === "away";
   const logo = isAway ? game.awayLogo : game.homeLogo;
   const team = isAway ? game.awayTeam : game.homeTeam;
+  const label = isAway ? game.awayLabel : game.homeLabel;
   const spread = isAway ? game.odds.awaySpread : game.odds.homeSpread;
   const moneyline = isAway ? game.odds.awayMoneyline : game.odds.homeMoneyline;
 
@@ -61,7 +84,10 @@ function teamRow(game: HomepageGameCard, side: "away" | "home") {
     <div className="scoreboard-team-row">
       <div className="scoreboard-team-main">
         {renderLogo(logo, team)}
-        <strong>{team}</strong>
+        <div className="scoreboard-team-copy">
+          <strong>{label}</strong>
+          {label !== team ? <span>{team}</span> : null}
+        </div>
       </div>
       <div className="scoreboard-team-markets">
         {spread ? <span className="odds-pill">{spread}</span> : null}
@@ -72,16 +98,16 @@ function teamRow(game: HomepageGameCard, side: "away" | "home") {
 }
 
 export function HomepageBoard({ data }: HomepageBoardProps) {
-  const [activeSport, setActiveSport] = useState<HomeSportFilter>(
-    data.featuredCount > 0 ? "featured" : "nba",
-  );
+  const [activeSport, setActiveSport] = useState<HomeSportFilter>("featured");
 
   const visibleGames = useMemo(() => {
     const filtered = cardGamesForFilter(data.games, activeSport);
     if (filtered.length > 0) return filtered;
-    if (activeSport === "nba") return cardGamesForFilter(data.games, "featured");
     return data.games;
   }, [activeSport, data.games]);
+
+  const featureLinks = SPORT_SUBLINKS[activeSport];
+  const primaryMatchupLink = visibleGames.find((game) => game.href !== "/today")?.href ?? "/today";
 
   return (
     <>
@@ -92,10 +118,10 @@ export function HomepageBoard({ data }: HomepageBoardProps) {
           </Link>
 
           <nav className="home-primary-nav" aria-label="Homepage">
-            <a href="/#today">Today</a>
-            <a href="/#matchups">Trends</a>
-            <a href="/#featured-picks">Picks</a>
-            <a href="/today">Props</a>
+            <a href="#matchups">Sports</a>
+            <a href="#matchups">Odds</a>
+            <a href="#browse">Trends</a>
+            <a href="#browse">API</a>
           </nav>
 
           <p className="home-date-stamp">{data.todayEtLabel}</p>
@@ -105,7 +131,6 @@ export function HomepageBoard({ data }: HomepageBoardProps) {
       <main className="home-page">
         <section className="home-hero-shell">
           <div className="home-hero-copy">
-            <p className="home-kicker">The Drip</p>
             <h1>Today&apos;s games</h1>
             <p>{data.generatedAtEt}</p>
           </div>
@@ -120,11 +145,7 @@ export function HomepageBoard({ data }: HomepageBoardProps) {
           <div className="sports-pill-row" aria-label="Sports">
             {SPORT_PILLS.map((pill) => {
               const count =
-                pill.id === "featured"
-                  ? data.featuredCount > 0
-                    ? data.featuredCount
-                    : data.games.length
-                  : data.sportCounts[pill.id];
+                pill.id === "featured" ? data.games.length : data.sportCounts[pill.id];
               const isActive = activeSport === pill.id;
 
               return (
@@ -140,6 +161,14 @@ export function HomepageBoard({ data }: HomepageBoardProps) {
                 </button>
               );
             })}
+          </div>
+
+          <div className="home-subnav-row" aria-label="Matchup shortcuts">
+            {featureLinks.map((link) => (
+              <Link key={`${activeSport}-${link.label}`} href={link.href} className="home-subnav-link">
+                {link.label}
+              </Link>
+            ))}
           </div>
 
           {visibleGames.length === 0 ? (
@@ -160,27 +189,11 @@ export function HomepageBoard({ data }: HomepageBoardProps) {
                     {teamRow(game, "home")}
                   </div>
 
-                  {game.trend ? (
-                    <div className="scoreboard-trend-row">
-                      <span className="trend-badge">{game.trend.badge}</span>
-                      <div>
-                        <strong>{game.trend.play}</strong>
-                        <span>
-                          {formatStrength(game.trend.strength)} signal
-                          {game.trend.sample > 0 ? ` · ${game.trend.sample} sample` : ""}
-                        </span>
-                      </div>
-                    </div>
-                  ) : null}
-
                   <div className="scoreboard-total-row">
                     {game.odds.total ? (
-                      <>
-                        <span>O/U {game.odds.total}</span>
-                        {game.odds.sportsbook ? <small>{game.odds.sportsbook}</small> : null}
-                      </>
+                      <span>O/U {game.odds.total}</span>
                     ) : (
-                      <span>Lines pending</span>
+                      <span>Odds pending</span>
                     )}
                   </div>
 
@@ -193,38 +206,42 @@ export function HomepageBoard({ data }: HomepageBoardProps) {
           )}
         </section>
 
-        {data.picks.length > 0 ? (
-          <section className="featured-picks-shell" id="featured-picks">
-            <div className="section-heading-row">
-              <h2>Today&apos;s Picks</h2>
-              <span>{data.picks.length} featured</span>
-            </div>
+        <section className="home-explore-shell" id="browse">
+          <div className="section-heading-row">
+            <h2>Browse</h2>
+            <span>More from The Drip</span>
+          </div>
 
-            <div className="featured-picks-grid">
-              {data.picks.map((pick) => (
-                <Link key={`${pick.awayTeam}-${pick.homeTeam}-${pick.play}`} href={pick.href} className="pick-card">
-                  <span className={`league-badge league-badge-${pick.leagueColor}`}>{pick.leagueBadge}</span>
-                  <strong>{pick.awayTeam} at {pick.homeTeam}</strong>
-                  <p>{pick.play}</p>
-                  <div className="pick-card-meta">
-                    <span>{pick.record}</span>
-                    <span>{pick.sample} sample</span>
-                    <span>{formatStrength(pick.strength)}</span>
-                  </div>
-                  <small>{pick.timeLabel}</small>
-                </Link>
-              ))}
-            </div>
-          </section>
-        ) : null}
+          <div className="home-explore-grid">
+            <Link href="/today" className="home-explore-card">
+              <strong>Today board</strong>
+              <span>Open the live daily slate.</span>
+            </Link>
+
+            <Link href="/group/a" className="home-explore-card">
+              <strong>Group tables</strong>
+              <span>Move from the homepage into tournament groups.</span>
+            </Link>
+
+            <Link href={primaryMatchupLink} className="home-explore-card">
+              <strong>Match pages</strong>
+              <span>Jump from today&apos;s board into a matchup route.</span>
+            </Link>
+
+            <Link href="/edges/rsa-vs-mex-2026-06-11" className="home-explore-card">
+              <strong>Edge pages</strong>
+              <span>See the deeper matchup layer already on the site.</span>
+            </Link>
+          </div>
+        </section>
       </main>
 
       <footer className="home-site-footer">
         <div className="home-site-footer-inner">
           <nav aria-label="Footer">
-            <a href="/#matchups">Trends</a>
-            <a href="/#today">API</a>
-            <a href="/#featured-picks">About</a>
+            <a href="#matchups">Sports</a>
+            <a href="/today">Odds</a>
+            <a href="#browse">Browse</a>
           </nav>
           <p>Data updates every 5 minutes</p>
         </div>
