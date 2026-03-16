@@ -1,6 +1,6 @@
 import { supabase } from './supabase';
 
-export async function getMatches(_groupLetter: string) {
+export async function getMatches() {
     // Match data comes from static groups.ts — DB match table not yet wired
     return [];
 }

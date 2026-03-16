@@ -369,7 +369,7 @@ export function useGroupAdvancementOdds(groupLetter: string) {
     return useQuery<Record<string, LiveTeamOdds>>({
         queryKey: ['wc-group-advancement-odds', groupLetter],
         queryFn: async () => {
-            if (!isSupabaseConfigured()) return {};
+            if (!isSupabaseConfigured() || !groupLetter.trim()) return {};
 
             try {
                 const { data, error } = await supabase
@@ -448,7 +448,7 @@ export function useGroupFixtures(groupLetter: string) {
     return useQuery<GroupFixture[]>({
         queryKey: ['wc-group-fixtures', groupLetter],
         queryFn: async () => {
-            if (!isSupabaseConfigured()) return [];
+            if (!isSupabaseConfigured() || !groupLetter.trim()) return [];
 
             const targetGroup = groupLetter.toUpperCase();
             const candidateColumns = ['group_letter', 'group'];
@@ -621,7 +621,7 @@ export function useGroupEdges(groupLetter: string) {
     return useQuery<{ data: LiveEdge[]; isLive: boolean }>({
         queryKey: ['wc-group-edges', groupLetter],
         queryFn: async () => {
-            if (!isSupabaseConfigured()) return { data: [], isLive: false };
+            if (!isSupabaseConfigured() || !groupLetter.trim()) return { data: [], isLive: false };
 
             try {
                 const { data, error } = await supabase

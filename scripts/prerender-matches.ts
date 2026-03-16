@@ -19,8 +19,6 @@ const SITE_URL = 'https://thedrip.to';
 const PUBLIC_DIR = resolve(import.meta.dirname, '..', 'public');
 const BUILD_TIME = new Date().toISOString().slice(0, 10);
 const EDGE_PAGE_COUNT = 44;
-const TOURNAMENT_START = '2026-06-01T00:00:00.000Z';
-const TOURNAMENT_END = '2026-07-31T23:59:59.999Z';
 
 const SUPABASE_URL =
     process.env.VITE_SUPABASE_URL ||
@@ -186,22 +184,6 @@ function normalizeText(value: string): string {
         .trim();
 }
 
-const TEAM_ALIAS: Record<string, string> = {
-    usa: 'united states',
-    'u s a': 'united states',
-    usmnt: 'united states',
-    'korea republic': 'south korea',
-    'republic of korea': 'south korea',
-    "cote d ivoire": 'ivory coast',
-    'cote divoire': 'ivory coast',
-    "cote d'ivoire": 'ivory coast',
-};
-
-function normalizeTeam(value: string): string {
-    const normalized = normalizeText(value);
-    return TEAM_ALIAS[normalized] ?? normalized;
-}
-
 function normalizeTeamSlug(value: string): string {
     const normalized = slugifyToken(value);
     return TEAM_SLUG_ALIAS[normalized] ?? normalized;
@@ -298,10 +280,6 @@ function asIdKey(value: unknown): string | null {
     if (typeof value === 'string' && value.trim()) return value.trim();
     if (typeof value === 'number' && Number.isFinite(value)) return String(value);
     return null;
-}
-
-function kickoffIsoFromRow(row: DbRow): string | null {
-    return readFirstString(row, ['start_time', 'commence_time', 'kickoff', 'match_time']);
 }
 
 function formatHeaderDateTimeUtc(iso: string): string {
@@ -1239,11 +1217,6 @@ function buildLeadParagraph(
     return `${base} Current bookmaker coverage is active, but no outcome is above the 4% edge threshold right now.`;
 }
 
-function modelToOdds(prob: number | null): string {
-    if (prob == null) return 'N/A';
-    return probToAmericanOdds(prob);
-}
-
 function buildRenderModel(
     match: MatchSeed,
     supabaseData: SupabaseLoad,
@@ -1581,11 +1554,11 @@ function renderTranslationRuntimeScript(): string {
     if (node) node.setAttribute('content', value.trim());
   }
 
-  setMeta('meta[name=\"description\"]', translation.metaDescription);
-  setMeta('meta[property=\"og:title\"]', translation.title);
-  setMeta('meta[property=\"og:description\"]', translation.metaDescription);
-  setMeta('meta[name=\"twitter:title\"]', translation.title);
-  setMeta('meta[name=\"twitter:description\"]', translation.metaDescription);
+  setMeta('meta[name="description"]', translation.metaDescription);
+  setMeta('meta[property="og:title"]', translation.title);
+  setMeta('meta[property="og:description"]', translation.metaDescription);
+  setMeta('meta[name="twitter:title"]', translation.title);
+  setMeta('meta[name="twitter:description"]', translation.metaDescription);
 
   var englishBlock = document.getElementById('english-analysis');
   var translatedBlock = document.getElementById('translated-analysis');
@@ -1621,7 +1594,7 @@ function renderTranslationRuntimeScript(): string {
               .replace(/&/g, '&amp;')
               .replace(/</g, '&lt;')
               .replace(/>/g, '&gt;')
-              .replace(/\"/g, '&quot;')
+              .replace(/"/g, '&quot;')
               .replace(/'/g, '&#39;') +
             '</p>';
         })
@@ -1640,7 +1613,7 @@ function renderTranslationRuntimeScript(): string {
               .replace(/&/g, '&amp;')
               .replace(/</g, '&lt;')
               .replace(/>/g, '&gt;')
-              .replace(/\"/g, '&quot;')
+              .replace(/"/g, '&quot;')
               .replace(/'/g, '&#39;') +
             '</li>';
         })

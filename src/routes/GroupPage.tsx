@@ -327,19 +327,20 @@ export const GroupPage: React.FC = () => {
     const { letter } = useParams<{ letter: string }>();
     const upperLetter = letter?.toUpperCase() ?? '';
     const group = allGroups[upperLetter];
-
-    if (!group) return <Navigate to="/" replace />;
+    const queryGroupLetter = group ? upperLetter : '';
 
     const meta = GROUP_META[upperLetter] || { analysis: '' };
 
     // Live edges from DB — falls back to static edges in GROUP_META
-    const { data: liveEdgeResult } = useGroupEdges(upperLetter);
+    const { data: liveEdgeResult } = useGroupEdges(queryGroupLetter);
     const liveEdges = liveEdgeResult?.data ?? [];
     const hasLiveEdges = liveEdgeResult?.isLive && liveEdges.length > 0;
 
     // Live advancement odds and fixture schedule from DB
-    const { data: liveAdvancementOdds } = useGroupAdvancementOdds(upperLetter);
-    const { data: liveFixtures } = useGroupFixtures(upperLetter);
+    const { data: liveAdvancementOdds } = useGroupAdvancementOdds(queryGroupLetter);
+    const { data: liveFixtures } = useGroupFixtures(queryGroupLetter);
+
+    if (!group) return <Navigate to="/" replace />;
 
     const getOdds = (code: string) => {
         const live = liveAdvancementOdds?.[code];
