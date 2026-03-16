@@ -35,11 +35,9 @@ export default async function HomePage() {
     hasPart: data.games.map((game) => ({
       "@type": "SportsEvent",
       name: `${game.awayTeam} at ${game.homeTeam}`,
-      sport: game.sportLabel,
+      sport: game.sport.toUpperCase(),
       startDate: game.startTime,
-      url: game.href.startsWith("/")
-        ? `https://thedrip.to${game.href}`
-        : "https://thedrip.to/today",
+      url: `https://thedrip.to/today?match_id=${encodeURIComponent(game.sourceId)}`,
     })),
   };
 
