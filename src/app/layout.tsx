@@ -9,7 +9,7 @@ export const metadata: Metadata = {
         default: 'The Drip',
         template: '%s | The Drip',
     },
-    description: 'Oracle-grade World Cup 2026 edge analysis, match intelligence, and live odds context.',
+    description: 'Today’s games, opening lines, and betting signals on one homepage.',
     openGraph: {
         siteName: 'The Drip',
         type: 'website',

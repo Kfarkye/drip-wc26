@@ -19,6 +19,10 @@ function isActive(pathname: string, href: string): boolean {
 export function SiteChrome() {
     const pathname = usePathname();
 
+    if (pathname === '/') {
+        return null;
+    }
+
     return (
         <>
             <header className="site-header">
