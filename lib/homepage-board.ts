@@ -433,7 +433,7 @@ async function fetchTeamLogos(): Promise<Map<string, string>> {
 }
 
 function lineRichness(row: OpeningLineRow): number {
-  const values = [
+  const values: unknown[] = [
     readFirstValue(row, ["home_spread", "spread_home", "home_line"]),
     readFirstValue(row, ["away_spread", "spread_away", "away_line"]),
     readFirstValue(row, ["home_ml", "home_moneyline", "moneyline_home"]),
@@ -441,7 +441,10 @@ function lineRichness(row: OpeningLineRow): number {
     readFirstValue(row, ["total", "over_under", "total_points"]),
   ];
 
-  return values.reduce((count, value) => count + (value !== null && value !== undefined && value !== "" ? 1 : 0), 0);
+  return values.reduce<number>(
+    (count, value) => count + (value !== null && value !== undefined && value !== "" ? 1 : 0),
+    0,
+  );
 }
 
 function bestLineForMatch(rows: OpeningLineRow[]): OpeningLineRow | null {
