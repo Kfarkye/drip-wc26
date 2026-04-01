@@ -38,5 +38,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
             priority: 0.8,
             url: `https://thedrip.to/match/${entry.slug}`,
         })),
+        // Team pages — only include pages that actually exist
+        {
+            changeFrequency: 'weekly' as const,
+            lastModified: new Date(),
+            priority: 0.85,
+            url: 'https://thedrip.to/teams/spain/',
+        },
     ];
 }
